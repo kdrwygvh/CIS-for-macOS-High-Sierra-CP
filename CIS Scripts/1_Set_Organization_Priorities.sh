@@ -38,17 +38,15 @@
 # Admins set organizational compliance for each listed item, which gets written to plist.
 # Values default to "true," and must be commented to "false" to disregard as an organizational priority.
 # Writes to /Library/Application Support/SecurityScoring/org_security_score.plist by default.
+# Writes to /Library/Preferences/com.organization.cisPriorities.plist where com.organization is defined
+# below or as Jamf parameter 4 to match the organization's preference domain
 
-# Create the Scoring file destination directory if it does not already exist
+organizationDomain=$4
 
-dir="/Library/Application Support/SecurityScoring"
-
-if [[ ! -e "$dir" ]]; then
-    mkdir "$dir"
+if [[ "$4" = "" ]] && [[ "$organizationDomain" = "" ]]; then
+    echo "Must set organization domain before running, bailing"
+    exit 1
 fi
-plistlocation="$dir/org_security_score.plist"
-
-
 ##################################################################
 ############### ADMINS DESIGNATE ORG VALUES BELOW ################
 ##################################################################
