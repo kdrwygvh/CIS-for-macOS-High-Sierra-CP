@@ -612,84 +612,276 @@ fi
 
 # 2.7.1 iCloud configuration (Check for iCloud accounts) (Not Scored)
 # Verify organizational score
-Audit2_7_1="$(defaults read "$plistlocation" OrgScore2_7_1)"
+Audit2_7_1="$(defaults read "$cisPrioritiesPreferences" Score2.7.1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_7_1" = "1" ]; then
 	over500=$( /usr/bin/dscl . list /Users UniqueID | /usr/bin/awk '$2 > 500 { print $1 }' )
 	for EachUser in $over500 ;
 	do
-		UserHomeDirectory=$(/usr/bin/dscl . -read /Users/"$EachUser" NFSHomeDirectory | /usr/bin/awk '{print $2}')
+		UserHomeDirectory=$(/usr/bin/dscl . -read /Users/$EachUser NFSHomeDirectory | /usr/bin/awk '{print $2}')
 		CheckForiCloudAccount="$(/usr/bin/defaults read "$UserHomeDirectory/Library/Preferences/MobileMeAccounts" Accounts | /usr/bin/grep -c 'AccountDescription = iCloud')"
 		# If client fails, then note category in audit file
-		if [[ "$CheckForiCloudAccount" -gt "0" ]] ; then
-			/bin/echo "* 2.7.1 $EachUser has an iCloud account configured" >> "$auditfilelocation"
-			echo "$(date -u)" "2.7.1 fix $EachUser iCloud account" | tee -a "$logFile"; else
-			echo "$(date -u)" "2.7.1 passed $EachUser" #| tee -a "$logFile"
+		if [[ "$CheckForiCloudAccount" > "0" ]] ; then
+			/bin/echo "* 2.7.1 $EachUser has an iCloud account configured" >> "$auditResults"
+			echo $(date -u) "2.7.1 Remediate $EachUser iCloud account" | tee -a "$logFile"; else
+			echo $(date -u) "2.7.1 Passed $EachUser" #| tee -a "$logFile"
 		fi
 	done
 fi
 
-# 2.7.2 Disable iCloud keychain (Not Scored) - 
+# 2.7.1.01 Disable Apple ID setup during login (Not Scored)
+# Configuration Profile - LoginWindow payload > Options >  Disable Apple ID setup during login (checked)
+# Verify organizational score
+Audit2_7_1_01="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.01)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_7_1_01" = "1" ]; then
+	configurationProfile_SkipCloudSetup="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'SkipCloudSetup = 1')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_SkipCloudSetup" > "0" ]] ; then
+		echo $(date -u) "2.7.1.01 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.01 -bool false; else
+		echo "* 2.7.1.01 Disable Apple ID setup during login with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.01 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.1.02 Disable the iCloud system preference pane (Not Scored)
+# Configuration Profile - Restrictions payload > Preferences > disable selected items > iCloud
+# Verify organizational score
+Audit2_7_1_02="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.02)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_7_1.02" = "1" ]; then
+	configurationProfile_iCloudSystemPreferencePane="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -A 20 'DisabledPreferencePanes' | /usr/bin/grep -c 'com.apple.preferences.icloud')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_iCloudSystemPreferencePane" > "0" ]] ; then
+		echo $(date -u) "2.7.1.02 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.02 -bool false; else
+		echo "* 2.7.1.02 Disable the iCloud system preference pane with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.02 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.1.03 Disable the use of iCloud password for local accounts (Not Scored)
+# Configuration Profile - Restrictions payload > Functionality > Allow use of iCloud password for local accounts (unchecked)
+# Verify organizational score
+Audit2_7_1_03="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.03)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_7_1_03" = "1" ]; then
+	configurationProfile_DisableUsingiCloudPassword="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'DisableUsingiCloudPassword = 1')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_DisableUsingiCloudPassword" > "0" ]] ; then
+		echo $(date -u) "2.7.1.03 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.03 -bool false; else
+		echo "* 2.7.1.03 Disable use of iCloud password for local accounts with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.03 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.1.04 Disable iCloud Back to My Mac (Not Scored)
+# Configuration Profile - Restrictions payload > Functionality > Allow iCloud Back to My Mac (unchecked)
+# Verify organizational score
+Audit2_7_1_04="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.04)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_7_1_04" = "1" ]; then
+	configurationProfile_iCloudBacktoMyMac="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudBTMM = 0')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_iCloudBacktoMyMac" > "0" ]] ; then
+		echo $(date -u) "2.7.1.04 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.04 -bool false; else
+		echo "* 2.7.1.04 Disable iCloud Back to My Mac with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.04 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.1.05 Disable iCloud Find My Mac (Not Scored)
+# Configuration Profile - Restrictions payload > Functionality > Allow iCloud Find My Mac (unchecked)
+# Verify organizational score
+Audit2_7_1_05="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.05)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_7_1_05" = "1" ]; then
+	configurationProfile_iCloudFindMyMac="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudFMM = 0')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_iCloudFindMyMac" > "0" ]] ; then
+		echo $(date -u) "2.7.1.05 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.05 -bool false; else
+		echo "* 2.7.1.05 Disable iCloud Find My Mac with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.05 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.1.06 Disable iCloud Bookmarks (Not Scored)
+# Configuration Profile - Restrictions payload > Functionality > Allow iCloud Bookmarks (unchecked)
+# Verify organizational score
+Audit2_7_1_06="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.06)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2.7.1.06" = "1" ]; then
+	configurationProfile_iCloudBookmarks="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudBookmarks = 0')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_iCloudBookmarks" > "0" ]] ; then
+		echo $(date -u) "2.7.1.06 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.06 -bool false; else
+		echo "* 2.7.1.06 Disable iCloud Bookmarks with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.06 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.1.07 Disable iCloud Mail (Not Scored)
+# Configuration Profile - Restrictions payload > Functionality > Allow iCloud Mail (unchecked)
+# Verify organizational score
+Audit2_7_1_07="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.07)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_7_1_07" = "1" ]; then
+	configurationProfile_iCloudMail="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudMail = 0')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_iCloudMail" > "0" ]] ; then
+		echo $(date -u) "2.7.1.07 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.07 -bool false; else
+		echo "* 2.7.1.07 Disable iCloud Mail with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.07 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.1.08 Disable iCloud Calendar (Not Scored)
+# Configuration Profile - Restrictions payload > Functionality > Allow iCloud Calendar (unchecked)
+# Verify organizational score
+Audit2_7_1_08="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.08)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_7_1_08" = "1" ]; then
+	configurationProfile_iCloudCalendar="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudCalendar = 0')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_iCloudCalendar" > "0" ]] ; then
+		echo $(date -u) "2.7.1.08 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.08 -bool false; else
+		echo "* 2.7.1.08 Disable iCloud Calendar with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.08 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.1.09 Disable iCloud Reminders (Not Scored)
+# Configuration Profile - Restrictions payload > Functionality > Allow iCloud Reminders (unchecked)
+# Verify organizational score
+Audit2_7_1_09="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.09)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_7_1_09" = "1" ]; then
+	configurationProfile_iCloudReminders="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudReminders = 0')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_iCloudReminders" > "0" ]] ; then
+		echo $(date -u) "2.7.1.09 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.09 -bool false; else
+		echo "* 2.7.1.09 Disable iCloud Reminders with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.09 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.1.10 Disable iCloud Contacts (Not Scored)
+# Configuration Profile - Restrictions payload > Functionality > Allow iCloud Contacts (unchecked)
+# Verify organizational score
+Audit2_7_1_10="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.10)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_7_1_10" = "1" ]; then
+	configurationProfile_iCloudContacts="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudAddressBook = 0')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_iCloudContacts" > "0" ]] ; then
+		echo $(date -u) "2.7.1.10 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.10 -bool false; else
+		echo "* 2.7.1.10 Disable iCloud Contacts with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.10 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.1.11 Disable iCloud Notes (Not Scored)
+# Configuration Profile - Restrictions payload > Functionality > Allow iCloud Notes (unchecked)
+# Verify organizational score
+Audit2_7_1_11="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.11)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_7_1_11" = "1" ]; then
+	configurationProfile_iCloudNotes="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudNotes = 0')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_iCloudNotes" > "0" ]] ; then
+		echo $(date -u) "2.7.1.11 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.11 -bool false; else
+		echo "* 2.7.1.11 Disable iCloud Notes with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.11 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.1.12 Disable Content Caching (Not Scored)
+# Configuration Profile - Restrictions payload > Functionality > Allow Content Caching (unchecked)
+# Verify organizational score
+Audit2_7_1_12="$(defaults read "$cisPrioritiesPreferences" Score2.7.1.12)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_7_1_12" = "1" ]; then
+	configurationProfile_ContentCaching="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowContentCaching = 0')"
+	# If client fails, then note category in audit file
+	if [[ "$configurationProfile_ContentCaching" > "0" ]] ; then
+		echo $(date -u) "2.7.1.12 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.1.12 -bool false; else
+		echo "* 2.7.1.12 Disable Content Caching with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.1.12 Remediate" | tee -a "$logFile"
+	fi
+fi
+
+# 2.7.2 Disable iCloud keychain (Not Scored)
 # Configuration Profile - Restrictions payload > Functionality > Allow iCloud Keychain (unchecked)
 # Verify organizational score
-Audit2_7_2="$(defaults read "$plistlocation" OrgScore2_7_2)"
+Audit2_7_2="$(defaults read "$cisPrioritiesPreferences" Score2.7.2)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_7_2" = "1" ]; then
-	CP_iCloudKeychain="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudKeychainSync = 0')"
+	configurationProfile_iCloudKeychain="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudKeychainSync = 0')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_iCloudKeychain" -gt "0" ]] ; then
-		echo "$(date -u)" "2.7.2 passed CP" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_7_2 -bool false; else
-		echo "* 2.7.2 Disable iCloud Keychain with configuration profile" >> "$auditfilelocation"
-		echo "$(date -u)" "2.7.2 fix" | tee -a "$logFile"
+	if [[ "$configurationProfile_iCloudKeychain" > "0" ]] ; then
+		echo $(date -u) "2.7.2 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.2 -bool false; else
+		echo "* 2.7.2 Disable iCloud Keychain with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.2 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 2.7.3 Disable iCloud Drive (Not Scored)
 # Configuration Profile - Restrictions payload > Functionality > Allow iCloud Drive (unchecked)
 # Verify organizational score
-Audit2_7_3="$(defaults read "$plistlocation" OrgScore2_7_3)"
+Audit2_7_3="$(defaults read "$cisPrioritiesPreferences" Score2.7.3)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_7_3" = "1" ]; then
-	CP_iCloudDrive="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudDocumentSync = 0')"
+	configurationProfile_iCloudDrive="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudDocumentSync = 0')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_iCloudDrive" -gt "0" ]] ; then
-		echo "$(date -u)" "2.7.3 passed CP" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_7_3 -bool false; else
-		echo "* 2.7.3 Disable iCloud Drive with configuration profile" >> "$auditfilelocation"
-		echo "$(date -u)" "2.7.3 fix" | tee -a "$logFile"
+	if [[ "$configurationProfile_iCloudDrive" > "0" ]] ; then
+		echo $(date -u) "2.7.3 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.3 -bool false; else
+		echo "* 2.7.3 Disable iCloud Drive with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.3 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 2.7.4 iCloud Drive Document sync
 # Configuration Profile - Restrictions payload - > Functionality > Allow iCloud Desktop & Documents (unchecked)
 # Verify organizational score
-Audit2_7_4="$(defaults read "$plistlocation" OrgScore2_7_4)"
+Audit2_7_4="$(defaults read "$cisPrioritiesPreferences" Score2.7.4)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_7_4" = "1" ]; then
 	# If client fails, then note category in audit file
-	CP_icloudDriveDocSync="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudDesktopAndDocuments = 0')"
-	if [[ "$CP_icloudDriveDocSync" -gt "0" ]] ; then
-		echo "$(date -u)" "2.7.4 passed CP" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_7_4 -bool false; else
-		echo "* 2.7.4 Disable iCloud Drive Document sync with configuration profile" >> "$auditfilelocation"
-		echo "$(date -u)" "2.7.4 fix" | tee -a "$logFile"
+	configurationProfile_icloudDriveDocSync="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudDesktopAndDocuments = 0')"
+	if [[ "$configurationProfile_icloudDriveDocSync" > "0" ]] ; then
+		echo $(date -u) "2.7.4 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.4 -bool false; else
+		echo "* 2.7.4 Disable iCloud Drive Document sync with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.4 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 2.7.5 iCloud Drive Desktop sync
 # Configuration Profile - Restrictions payload - > Functionality > Allow iCloud Desktop & Documents (unchecked)
 # Verify organizational score
-Audit2_7_5="$(defaults read "$plistlocation" OrgScore2_7_5)"
+Audit2_7_5="$(defaults read "$cisPrioritiesPreferences" Score2.7.5)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_7_5" = "1" ]; then
 	# If client fails, then note category in audit file
-	CP_icloudDriveDocSync="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudDesktopAndDocuments = 0')"
-	if [[ "$CP_icloudDriveDocSync" -gt "0" ]] ; then
-		echo "$(date -u)" "2.7.5 passed CP" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_7_5 -bool false; else
-		echo "* 2.7.5 Disable iCloud Drive Desktop sync with configuration profile" >> "$auditfilelocation"
-		echo "$(date -u)" "2.7.5 fix" | tee -a "$logFile"
+	configurationProfile_icloudDriveDocSync="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowCloudDesktopAndDocuments = 0')"
+	if [[ "$configurationProfile_icloudDriveDocSync" > "0" ]] ; then
+		echo $(date -u) "2.7.5 Passed configurationProfile" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.7.5 -bool false; else
+		echo "* 2.7.5 Disable iCloud Drive Desktop sync with configuration profile" >> "$auditResults"
+		echo $(date -u) "2.7.5 Remediate" | tee -a "$logFile"
 	fi
 fi
 
