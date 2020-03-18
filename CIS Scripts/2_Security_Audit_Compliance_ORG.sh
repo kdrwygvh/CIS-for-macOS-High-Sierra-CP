@@ -72,11 +72,11 @@ Audit1_1="$(defaults read "$plistlocation" OrgScore1_1)"
 if [ "$Audit1_1" = "1" ]; then
 	countAvailableSUS="$(softwareupdate -l | grep "*" | wc -l | tr -d ' ')"
 	# If client fails, then note category in audit file
-	if [ "$countAvailableSUS" = "0" ]; then
-		echo "$(date -u)" "1.1 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore1_1 -bool false; else
-		echo "* 1.1 Verify all Apple provided software is current" >> "$auditfilelocation"
-		echo "$(date -u)" "1.1 fix" | tee -a "$logFile"
+	if [[ "$countAvailableSUS" -eq "0" ]]; then
+		echo $(date -u) "1.1 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score1.1 -bool false; else
+		echo "* 1.1 Verify all Apple provided software is current" >> "$auditResults"
+		echo $(date -u) "1.1 Remediate" | tee -a "$logFile"
 	fi
 fi
 
