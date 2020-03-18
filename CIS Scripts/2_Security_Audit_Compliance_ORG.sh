@@ -47,23 +47,23 @@ currentUser="$(/bin/ls -l /dev/console | /usr/bin/awk '{ print $3 }')"
 hardwareUUID=$(/usr/sbin/system_profiler SPHardwareDataType | awk '/Hardware UUID/ { print $3 }')
 logFile="/var/log/cisRemediation.log"
 
-
-if [[ $(tail -n 1 "$logFile") = *"Remediation complete" ]]; then
-	echo "Append to existing logFile"
- 	echo "$(date -u)" "Beginning Audit" >> "$logFile"; else
- 	echo "Create new logFile"
- 	echo "$(date -u)" "Beginning Audit" > "$logFile"	
+if [[ "$4" = "" ]] && [[ "$organizationDomain" = "" ]]; then
+    echo "Must set organization domain before running, bailing"
+    exit 1
 fi
 
-if [[ ! -e $plistlocation ]]; then
+if [[ ! -f $cisPrioritiesPreferences ]]; then
 	echo "No scoring file present"
-	exit 0
+	exit 1
 fi
 
 # Cleanup audit file to start fresh
-[ -f "$auditfilelocation" ] && rm "$auditfilelocation"
-touch "$auditfilelocation"
+if [[ -f "$auditResults" ]]; then
+    touch "$auditResults"
+fi
 
+
+echo $(date -u) "Beginning Audit" > "$logFile"
 
 # 1.1 Verify all Apple provided software is current
 # Verify organizational score
