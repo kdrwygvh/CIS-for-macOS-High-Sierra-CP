@@ -160,9 +160,17 @@ if [ "$Audit2_2_2" = "1" ]; then
 	echo $(date -u) "2.2.2 enforced" | tee -a "$logFile"
 fi
 
-# 2.3.1 Set an inactivity interval of 20 minutes or less for the screen saver 
+# 2.2.3 Restrict NTP server to loopback interface
 # Verify organizational score
-Audit2_3_1="$(defaults read "$plistlocation" OrgScore2_3_1)"
+Audit2_2_3="$(defaults read "$cisPrioritiesPreferences" Score2.2.3)"
+# If organizational score is 1 or true, check status of client
+# If client fails, then remediate
+if [ "$Audit2_2_3" = "1" ]; then
+	cp /etc/ntp-restrict.conf /etc/ntp-restrict_old.conf
+	echo -n "restrict lo interface ignore wildcard interface listen lo" >> /etc/ntp-restrict.conf
+	echo $(date -u) "2.2.3 Remediated" | tee -a "$logFile"
+fi
+
 # If organizational score is 1 or true, check status of client
 # If client fails, then remediate
 if [ "$Audit2_3_1" = "1" ]; then
