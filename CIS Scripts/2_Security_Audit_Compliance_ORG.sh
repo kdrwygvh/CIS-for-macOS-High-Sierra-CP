@@ -39,12 +39,13 @@
 # For "true" items, runs query for current computer/user compliance.
 # Non-compliant items are logged to /Library/Application Support/SecurityScoring/org_audit
 
-plistlocation="/Library/Application Support/SecurityScoring/org_security_score.plist"
-auditfilelocation="/Library/Application Support/SecurityScoring/org_audit"
-currentUser="$(python -c 'from SystemConfiguration import SCDynamicStoreCopyConsoleUser; import sys; username = (SCDynamicStoreCopyConsoleUser(None, None, None) or [None])[0]; username = [username,""][username in [u"loginwindow", None, u""]]; sys.stdout.write(username + "\n");')"
-hardwareUUID="$(/usr/sbin/system_profiler SPHardwareDataType | grep "Hardware UUID" | awk -F ": " '{print $2}' | xargs)"
 
-logFile="/Library/Application Support/SecurityScoring/remediation.log"
+organizationDomain=$4
+cisPrioritiesPreferences="/Library/Preferences/$4.cisPriorities.plist"
+auditResults="/var/tmp/$4.auditResults"
+currentUser="$(/bin/ls -l /dev/console | /usr/bin/awk '{ print $3 }')"
+hardwareUUID=$(/usr/sbin/system_profiler SPHardwareDataType | awk '/Hardware UUID/ { print $3 }')
+logFile="/var/log/cisRemediation.log"
 
 
 if [[ $(tail -n 1 "$logFile") = *"Remediation complete" ]]; then
