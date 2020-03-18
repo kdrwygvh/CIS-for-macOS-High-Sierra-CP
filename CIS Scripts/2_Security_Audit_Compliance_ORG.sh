@@ -974,314 +974,304 @@ if [ "$Audit2_13" = "1" ]; then
     fi
 fi
 
-
 # 3.1 Enable security auditing
 # Verify organizational score
-Audit3_1="$(defaults read "$plistlocation" OrgScore3_1)"
+Audit3_2="$(defaults read "$cisPrioritiesPreferences" Score3.2)"
 # If organizational score is 1 or true, check status of client
-if [ "$Audit3_1" = "1" ]; then
+if [ "$Audit3_2" = "1" ]; then
 	auditdEnabled="$(launchctl list | grep -c auditd)"
 	# If client fails, then note category in audit file
 	if [ "$auditdEnabled" -gt "0" ]; then
-		echo "$(date -u)" "3.1 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore3_1 -bool false; else
-		echo "* 3.1 Enable security auditing" >> "$auditfilelocation"
-		echo "$(date -u)" "3.1 fix" | tee -a "$logFile"
+		echo $(date -u) "3.2 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score3.2 -bool false; else
+		echo "* 3.2 Enable security auditing" >> "$auditResults"
+		echo $(date -u) "3.2 Remediate" | tee -a "$logFile"
 	fi
 fi
 
+# 3.1.3 Retain authd.log for 90 or more days
+
 # 3.2 Configure Security Auditing Flags
 # Verify organizational score
-Audit3_2="$(defaults read "$plistlocation" OrgScore3_2)"
+Audit3_2="$(defaults read "$cisPrioritiesPreferences" Score3.2)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit3_2" = "1" ]; then
 	auditFlags="$(egrep "^flags:" /etc/security/audit_control)"
 	# If client fails, then note category in audit file
 	if [[ ${auditFlags} != *"ad"* ]];then
-		echo "* 3.2 Configure Security Auditing Flags" >> "$auditfilelocation"
-		echo "$(date -u)" "3.2 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "3.2 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore3_2 -bool false
+		echo "* 3.3 Configure Security Auditing Flags" >> "$auditResults"
+		echo $(date -u) "3.3 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "3.3 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score3.3 -bool false
 	fi
 fi
 
 # 3.3 Ensure security auditing retention
 # Verify organizational score
-Audit3_3="$(defaults read "$plistlocation" OrgScore3_3)"
+Audit3_3="$(defaults read "$cisPrioritiesPreferences" Score3.3)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit3_3" = "1" ]; then
 	auditRetention="$(cat /etc/security/audit_control | egrep expire-after)"
-	if [ "$auditRetention" = "expire-after:60D OR 1G" ]; then
-		echo "$(date -u)" "3.3 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore3_3 -bool false; else
-		echo "* 3.3 Ensure security auditing retention" >> "$auditfilelocation"
-		echo "$(date -u)" "3.3 fix" | tee -a "$logFile"
-		fi
+	if [ "$auditRetention" = "expire-after:60d OR 1G" ]; then
+		echo "$(date -u)" "3.3 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score3.3 -bool false; else
+		echo "* 3.3 Ensure security auditing retention" >> "$auditResults"
+		echo "$(date -u)" "3.3 Remediate" | tee -a "$logFile"
 	fi
-		
+fi
+
 
 # 3.4 Control access to audit records
 # Audit only.  Remediation requires system inspection.
 # Verify organizational score
-Audit3_4="$(defaults read "$plistlocation" OrgScore3_4)"
+Audit3_4="$(defaults read "$cisPrioritiesPreferences" Score3.4)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit3_4" = "1" ]; then
 	etccheck=$(ls -le /etc/security/audit_control | awk '{print $3 $4}' | awk 'NF' | grep -v "root wheel")
 	varcheck=$(ls -le /var/audit | awk '{print $3 $4}' | awk 'NF' | grep -v "root wheel")
 	if [[ "$etccheck" != "" ]] && [[ "$varcheck" != "" ]]; then
-		echo "$(date -u)" "3.4 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore3_4 -bool false; else
-		echo "* 3.4 Control access to audit records" >> "$auditfilelocation"
-		echo "$(date -u)" "3.4 fix" | tee -a "$logFile"
-		fi
+		echo "$(date -u)" "3.4 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score3.4 -bool false; else
+		echo "* 3.4 Control access to audit records" >> "$auditResults"
+		echo "$(date -u)" "3.4 Remediate" | tee -a "$logFile"
 	fi
-	
-# 3.5 Retain install.log for 365 or more days 
+fi
+
+# 3.5 Retain install.log for 365 or more days
 # Verify organizational score
-Audit3_5="$(defaults read "$plistlocation" OrgScore3_5)"
+Audit3_5="$(defaults read "$cisPrioritiesPreferences" Score3.5)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit3_5" = "1" ]; then
 	installRetention="$(grep -i ttl /etc/asl/com.apple.install | awk -F'ttl=' '{print $2}')"
 	# If client fails, then note category in audit file
 	if [[ "$installRetention" = "" ]] || [[ "$installRetention" -lt "365" ]]; then
-		echo "* 3.5 Retain install.log for 365 or more days" >> "$auditfilelocation"
-		echo "$(date -u)" "3.5 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "3.5 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore3_5 -bool false
+		echo "* 3.5 Retain install.log for 365 or more days" >> "$auditResults"
+		echo $(date -u) "3.5 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "3.5 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score3.5 -bool false
 	fi
 fi
 
-# 3.6 Ensure Firewall is configured to log
+# 3.6 Retain appfirewall.log for 90 or more days
 # Verify organizational score
-Audit3_6="$(defaults read "$plistlocation" OrgScore3_6)"
+Audit3_6="$(defaults read "$cisPrioritiesPreferences" Score3.6)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit3_6" = "1" ]; then
-	FWlog=$(/usr/libexec/ApplicationFirewall/socketfilterfw --getloggingmode | sed -e 's/[[:space:]]*$//')
-	if [ "$FWlog" = "Log mode is on" ]; then
-		echo "$(date -u)" "3.6 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore3_6 -bool false; else
-		echo "* 3.6 Ensure Firewall is configured to log" >> "$auditfilelocation"
-		echo "$(date -u)" "3.6 fix" | tee -a "$logFile"
+	alfRetention="$(grep "appfirewall.log" /etc/asl.conf | grep "ttl" | awk -F'ttl=' '{print $2}')"
+	# If client fails, then note category in audit file
+	if [[ "$alfRetention" -lt "90" ]] || [[ "$alfRetention" = "" ]]; then
+		echo "* 3.6 Retain appfirewall.log for 90 or more days" >> "$auditResults"
+		echo $(date -u) "3.6 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "3.6 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score3.1.2 -bool false
 	fi
 fi
 
-# 4.1 Disable Bonjour advertising service 
+
+# 4.1 Disable Bonjour advertising service
 # Configuration Profile - Custom payload > com.apple.mDNSResponder > NoMulticastAdvertisements=true
 # Verify organizational score
-Audit4_1="$(defaults read "$plistlocation" OrgScore4_1)"
+Audit4_="$(defaults read "$cisPrioritiesPreferences" Score4.1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit4_1" = "1" ]; then
-	CP_bonjourAdvertise="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'NoMulticastAdvertisements = 1')"
+	configurationProfile_bonjourAdvertise="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'NoMulticastAdvertisements = 1')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_bonjourAdvertise" -gt "0" ]] ; then
-		echo "$(date -u)" "4.1 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore4_1 -bool false; else
+	if [[ "$configurationProfile_bonjourAdvertise" -gt "0" ]] ; then
+		echo $(date -u) "4.1 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score4.1 -bool false; else
 		bonjourAdvertise="$( defaults read /Library/Preferences/com.apple.mDNSResponder.plist NoMulticastAdvertisements )"
 		if [ "$bonjourAdvertise" != "1" ]; then
-			echo "* 4.1 Disable Bonjour advertising service" >> "$auditfilelocation"
-			echo "$(date -u)" "4.1 fix" | tee -a "$logFile"; else
-			echo "$(date -u)" "4.1 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore4_1 -bool false
+			echo "* 4.1 Disable Bonjour advertising service" >> "$auditResults"
+			echo $(date -u) "4.1 Remediate" | tee -a "$logFile"; else
+			echo $(date -u) "4.1 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score4.1 -bool false
 		fi
 	fi
 fi
 
-# 4.2 Enable "Show Wi-Fi status in menu bar" 
+# 4.2 Enable "Show Wi-Fi status in menu bar"
 # Verify organizational score
-Audit4_2="$(defaults read "$plistlocation" OrgScore4_2)"
+Audit4_2="$(defaults read "$cisPrioritiesPreferences" Score4.2)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit4_2" = "1" ]; then
 	wifiMenuBar="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.systemuiserver menuExtras | grep -c AirPort.menu)"
 	# If client fails, then note category in audit file
 	if [ "$wifiMenuBar" = "0" ]; then
-		echo "* 4.2 Enable Show Wi-Fi status in menu bar" >> "$auditfilelocation"
-		echo "$(date -u)" "4.2 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "4.2 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore4_2 -bool false
+		echo "* 4.2 Enable Show Wi-Fi status in menu bar" >> "$auditResults"
+		echo $(date -u) "4.2 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "4.2 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score4.2 -bool false
 	fi
 fi
 
-# 4.4 Ensure http server is not running 
+# 4.4 Ensure http server is not running
 # Verify organizational score
-Audit4_4="$(defaults read "$plistlocation" OrgScore4_4)"
+Audit4_4="$(defaults read "$cisPrioritiesPreferences" Score4.4)"
 # If organizational score is 1 or true, check status of client
-# Code fragment from https://github.com/krispayne/CIS-Settings/blob/master/ElCapitan_CIS.sh
+# Code fragment from https://github.com/krispayne/CIS-Settings/blob/master/ElCapitan.CIS.sh
 if [ "$Audit4_4" = "1" ]; then
 	if /bin/launchctl list | egrep httpd > /dev/null; then
-		echo "* 4.4 Ensure http server is not running" >> "$auditfilelocation"
-		echo "$(date -u)" "4.4 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "4.4 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore4_4 -bool false
+		echo "* 4.4 Ensure http server is not running" >> "$auditResults"
+		echo $(date -u) "4.4 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "4.4 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score4.4 -bool false
 	fi
 fi
 
 # 4.5 Ensure nfs server is not running
 # Verify organizational score
-Audit4_5="$(defaults read "$plistlocation" OrgScore4_5)"
+Audit4_6="$(defaults read "$cisPrioritiesPreferences" Score4.6)"
 # If organizational score is 1 or true, check status of client
-if [ "$Audit4_5" = "1" ]; then
+if [ "$Audit4_6" = "1" ]; then
 	# If client fails, then note category in audit file
 	if [ -e /etc/exports  ]; then
-		echo "4.5 Ensure nfs server is not running" >> "$auditfilelocation"
-		echo "$(date -u)" "4.5 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "4.5 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore4_5 -bool false
+		echo "4.6 Ensure nfs server is not running" >> "$auditResults"
+		echo $(date -u) "4.6 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "4.6 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score4.6 -bool false
 	fi
 fi
 
+# 4.6 Ensure nfs server is not running
+
 # 5.1.1 Secure Home Folders
 # Verify organizational score
-Audit5_1_1="$(defaults read "$plistlocation" OrgScore5_1_1)"
+Audit5_1_1="$(defaults read "$cisPrioritiesPreferences" Score5.1.1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_1_1" = "1" ]; then
 	homeFolders="$(find /Users -mindepth 1 -maxdepth 1 -type d -perm -1 | grep -v "Shared" | grep -v "Guest" | wc -l | xargs)"
 	# If client fails, then note category in audit file
 	if [ "$homeFolders" = "0" ]; then
-		echo "$(date -u)" "5.1.1 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_1_1 -bool false; else
-		echo "* 5.1.1 Secure Home Folders" >> "$auditfilelocation"
-		echo "$(date -u)" "5.1.1 fix" | tee -a "$logFile"
+		echo $(date -u) "5.1.1 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.1.1 -bool false; else
+		echo "* 5.1.1 Secure Home Folders" >> "$auditResults"
+		echo $(date -u) "5.1.1 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 5.1.2 Check System Wide Applications for appropriate permissions
 # Verify organizational score
-Audit5_1_2="$(defaults read "$plistlocation" OrgScore5_1_2)"
+Audit5_1_2="$(defaults read "$cisPrioritiesPreferences" Score5.1.2)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_1_2" = "1" ]; then
 	appPermissions="$(find /Applications -iname "*\.app" -type d -perm -2 -ls | wc -l | xargs)"
 	# If client fails, then note category in audit file
 	if [ "$appPermissions" = "0" ]; then
-		echo "$(date -u)" "5.1.2 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_1_2 -bool false; else
-		echo "* 5.1.2 Check System Wide Applications for appropriate permissions" >> "$auditfilelocation"
-		echo "$(date -u)" "5.1.2 fix" | tee -a "$logFile"
+		echo $(date -u) "5.1.2 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.1.2 -bool false; else
+		echo "* 5.1.2 Check System Wide Applications for appropriate permissions" >> "$auditResults"
+		echo $(date -u) "5.1.2 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 5.1.3 Check System folder for world writable files
 # Verify organizational score
-Audit5_1_3="$(defaults read "$plistlocation" OrgScore5_1_3)"
+Audit5_1_3="$(defaults read "$cisPrioritiesPreferences" Score5.1.3)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_1_3" = "1" ]; then
 	sysPermissions="$(find /System -type d -perm -2 -ls | grep -v "Public/Drop Box" | wc -l | xargs)"
 	# If client fails, then note category in audit file
 	if [ "$sysPermissions" = "0" ]; then
-		echo "$(date -u)" "5.1.3 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_1_3 -bool false; else
-		echo "* 5.1.3 Check System folder for world writable files" >> "$auditfilelocation"
-		echo "$(date -u)" "5.1.3 fix" | tee -a "$logFile"
+		echo $(date -u) "5.1.3 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.1.3 -bool false; else
+		echo "* 5.1.3 Check System folder for world writable files" >> "$auditResults"
+		echo $(date -u) "5.1.3 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 5.1.4 Check Library folder for world writable files
 # Verify organizational score
-Audit5_1_4="$(defaults read "$plistlocation" OrgScore5_1_4)"
+Audit5_1_4="$(defaults read "$cisPrioritiesPreferences" Score5.1.4)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_1_4" = "1" ]; then
 	libPermissions="$(find /Library -type d -perm -2 -ls | grep -v Caches | grep -v Adobe | grep -v VMware | wc -l | xargs)"
 	# If client fails, then note category in audit file
 	if [ "$libPermissions" = "0" ]; then
-		echo "$(date -u)" "5.1.4 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_1_4 -bool false; else
-		echo "* 5.1.4 Check Library folder for world writable files" >> "$auditfilelocation"
-		echo "$(date -u)" "5.1.4 fix" | tee -a "$logFile"
+		echo $(date -u) "5.1.4 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.1.4 -bool false; else
+		echo "* 5.1.4 Check Library folder for world writable files" >> "$auditResults"
+		echo $(date -u) "5.1.4 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 5.3 Reduce the sudo timeout period
 # Verify organizational score
-Audit5_3="$(defaults read "$plistlocation" OrgScore5_3)"
+Audit5_3="$(defaults read "$cisPrioritiesPreferences" Score5.3)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_3" = "1" ]; then
 	sudoTimeout="$(cat /etc/sudoers | grep timestamp)"
 	# If client fails, then note category in audit file
 	if [ "$sudoTimeout" = "" ]; then
-		echo "* 5.3 Reduce the sudo timeout period" >> "$auditfilelocation"
-		echo "$(date -u)" "5.3 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "5.3 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_3 -bool false
-	fi
-fi
-
-# 5.4 Use a separate timestamp for each user/tty combo
-# Verify organizational score
-Audit5_4="$(defaults read "$plistlocation" OrgScore5_4)"
-# If organizational score is 1 or true, check status of client
-if [ "$Audit5_4" = "1" ]; then
-	ttyTimestamp="$(cat /etc/sudoers | egrep tty_tickets)"
-	# If client fails, then note category in audit file
-	if [ "$ttyTimestamp" != "" ]; then
-		echo "* 5.4 Use a separate timestamp for each user/tty combo" >> "$auditfilelocation"
-		echo "$(date -u)" "5.4 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "5.4 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_4 -bool false
+		echo "* 5.3 Reduce the sudo timeout period" >> "$auditResults"
+		echo $(date -u) "5.3 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "5.3 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.3 -bool false
 	fi
 fi
 
 # 5.7 Automatically lock the login keychain for inactivity
 # Verify organizational score
-Audit5_7="$(defaults read "$plistlocation" OrgScore5_7)"
+Audit5_7="$(defaults read "$cisPrioritiesPreferences" Score5.7)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_7" = "1" ]; then
 	keyTimeout="$(security show-keychain-info /Users/"$currentUser"/Library/Keychains/login.keychain 2>&1 | grep -c "no-timeout")"
 	# If client fails, then note category in audit file
 	if [ "$keyTimeout" -gt 0 ]; then
-		echo "* 5.7 Automatically lock the login keychain for inactivity" >> "$auditfilelocation"
-		echo "$(date -u)" "5.7 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "5.7 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_7 -bool false
+		echo "* 5.7 Automatically lock the login keychain for inactivity" >> "$auditResults"
+		echo $(date -u) "5.7 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "5.7 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.4 -bool false
 	fi
 fi
 
 # 5.8 Ensure login keychain is locked when the computer sleeps
 # Verify organizational score
-Audit5_8="$(defaults read "$plistlocation" OrgScore5_8)"
+Audit5_8="$(defaults read "$cisPrioritiesPreferences" Score5.8)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_8" = "1" ]; then
 	lockSleep="$(security show-keychain-info /Users/"$currentUser"/Library/Keychains/login.keychain 2>&1 | grep -c "lock-on-sleep")"
 	# If client fails, then note category in audit file
 	if [ "$lockSleep" = 0 ]; then
-		echo "* 5.8 Ensure login keychain is locked when the computer sleeps" >> "$auditfilelocation"
-		echo "$(date -u)" "5.8 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "5.8 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_8 -bool false
+		echo "* 5.8 Ensure login keychain is locked when the computer sleeps" >> "$auditResults"
+		echo $(date -u) "5.8 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "5. Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.5 -bool false
 	fi
 fi
 
 # 5.9 Enable OCSP and CRL certificate checking
 # Does not work as a Configuration Profile - Custom payload > com.apple.security.revocation
 # Verify organizational score
-Audit5_9="$(defaults read "$plistlocation" OrgScore5_9)"
+Audit5_9="$(defaults read "$cisPrioritiesPreferences" Score5.9)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_9" = "1" ]; then
-	certificateCheckOCSP="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.security.revocation OCSPStyle)"
-	certificateCheckCRL="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.security.revocation CRLStyle)"
+	certificateCheckOCSP="$(defaults read /Users/$currentUser/Library/Preferences/com.apple.security.revocation OCSPStyle)"
+	certificateCheckCRL="$(defaults read /Users/$currentUser/Library/Preferences/com.apple.security.revocation CRLStyle)"
 	# If client fails, then note category in audit file
 	if [ "$certificateCheckOCSP" != "RequireIfPresent" ] || [ "$certificateCheckCRL" != "RequireIfPresent" ]; then
-		echo "* 5.9 Enable OCSP and CRL certificate checking" >> "$auditfilelocation"
-		echo "$(date -u)" "5.9 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "5.9 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_9 -bool false
+		echo "* 5.9 Enable OCSP and CRL certificate checking" >> "$auditResults"
+		echo $(date -u) "5.9 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "5.9 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.6 -bool false
 	fi
 fi
 
 # 5.11 Do not enable the "root" account
 # Verify organizational score
-Audit5_11="$(defaults read "$plistlocation" OrgScore5_11)"
+Audit5_11="$(defaults read "$cisPrioritiesPreferences" Score5.11)"
 if [ "$Audit5_11" = "1" ]; then
-	#echo "$(date -u)" "Checking 5.7" | tee -a "$logFile"
+	#echo $(date -u) "Checking 5.11" | tee -a "$logFile"
 	rootEnabled="$(dscl . -read /Users/root AuthenticationAuthority 2>&1 | grep -c "No such key")"
 	rootEnabledRemediate="$(dscl . -read /Users/root UserShell 2>&1 | grep -c "/usr/bin/false")"
 	if [ "$rootEnabled" = "1" ]; then
-		echo "$(date -u)" "5.11 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_11 -bool false; elif
+		echo $(date -u) "5.11 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.7 -bool false; elif
 		[ "$rootEnabledRemediate" = "1" ]; then
-		   echo "$(date -u)" "5.11 passed due to remediation" | tee -a "$logFile"
-		   defaults write "$plistlocation" OrgScore5_11 -bool false
+		   echo $(date -u) "5.1 Passed due to remediation" | tee -a "$logFile"
+		   defaults write "$cisPrioritiesPreferences" Score5.7 -bool false
 	else
-	echo "* 5.11 Do Not enable the "root" account" >> "$auditfilelocation"
-	echo "$(date -u)" "5.11 fix" | tee -a "$logFile"
+	echo "* 5.11 Do Not enable the "root" account" >> "$auditResults"
+	echo $(date -u) "5.11 Remediate" | tee -a "$logFile"
 
 	fi
 fi
@@ -1289,20 +1279,20 @@ fi
 # 5.12 Disable automatic login
 # Configuration Profile - LoginWindow payload > Options > Disable automatic login (checked)
 # Verify organizational score
-Audit5_12="$(defaults read "$plistlocation" OrgScore5_12)"
+Audit5_12="$(defaults read "$cisPrioritiesPreferences" Score5.12)"
 # If organizational score is 1 or true, check status of client
-if [ "$Audit5_12" = "1" ]; then
-	CP_autologinEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'DisableAutoLoginClient')"
+if [ "$Audit5128" = "1" ]; then
+	configurationProfile_autologinEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'DisableAutoLoginClient')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_autologinEnabled" -gt "0" ]] ; then
-		echo "$(date -u)" "5.12 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_12 -bool false; else
-		autologinEnabled="$(defaults read /Library/Preferences/com.apple.loginwindow | grep -Fx "autoLoginUser")"
+	if [[ "$configurationProfile_autologinEnabled" > "0" ]] ; then
+		echo $(date -u) "5.12 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.12 -bool false; else
+		autologinEnabled="$(defaults read /Library/Preferences/com.apple.loginwindow | grep autoLoginUser)"
 		if [ "$autologinEnabled" = "" ]; then
-			echo "$(date -u)" "5.12 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore5_12 -bool false; else
-			echo "* 5.12 Disable automatic login" >> "$auditfilelocation"
-			echo "$(date -u)" "5.12 fix" | tee -a "$logFile"
+			echo $(date -u) "5.12 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score5.8 -bool false; else
+			echo "* 5.12 Disable automatic login" >> "$auditResults"
+			echo $(date -u) "5.12 Remediate" | tee -a "$logFile"
 		fi
 	fi
 fi
@@ -1310,28 +1300,28 @@ fi
 # 5.13 Require a password to wake the computer from sleep or screen saver
 # Configuration Profile - Security and Privacy payload > General > Require password * after sleep or screen saver begins (checked)
 # Verify organizational score
-Audit5_13="$(defaults read "$plistlocation" OrgScore5_13)"
+Audit5_13="$(defaults read "$cisPrioritiesPreferences" Score5.13)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then note category in audit file
 if [ "$Audit5_13" = "1" ]; then
-	CP_screensaverPwd="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'askForPassword = 1')"
+	configurationProfile_screensaverPwd="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'askForPassword = 1')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_screensaverPwd" -gt "0" ]] ; then
-		echo "$(date -u)" "5.13 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_13 -bool false; else
+	if [[ "$configurationProfile_screensaverPwd" > "0" ]] ; then
+		echo $(date -u) "5.13 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.13 -bool false; else
 		screensaverPwd="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.screensaver askForPassword)"
 		if [ "$screensaverPwd" = "1" ]; then
-			echo "$(date -u)" "5.13 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore5_13 -bool false; else
-			echo "* 5.13 Require a password to wake the computer from sleep or screen saver" >> "$auditfilelocation"
-			echo "$(date -u)" "5.13 fix" | tee -a "$logFile"
+			echo $(date -u) "5.13 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score5.13 -bool false; else
+			echo "* 5.13 Require a password to wake the computer from sleep or screen saver" >> "$auditResults"
+			echo $(date -u) "5.13 Remediate" | tee -a "$logFile"
 		fi
 	fi
 fi
 
 # 5.14 Ensure system is set to hibernate
 # Verify organizational score
-Audit5_14="$(defaults read "$plistlocation" OrgScore5_14)"
+Audit5_14="$(defaults read "$cisPrioritiesPreferences" Score5.14)"
 # If client fails, then note category in audit file
 if [ "$Audit5_14" = "1" ]; then
 	macType=$(system_profiler SPHardwareDataType | egrep -c "Model Identifier: MacBook")
@@ -1339,63 +1329,63 @@ if [ "$Audit5_14" = "1" ]; then
 		hibernateValue=$(pmset -g | egrep standbydelay | awk '{print $2}')
 		if [[ "$hibernateValue" == "" ]] || [[ "$hibernateValue" -gt 900 ]]; then
 			echo "$(date -u)" "5.14 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore5_14 -bool false; else
-			echo "* 5.14 Ensure system is set to hibernate" >> "$auditfilelocation"
-			echo "$(date -u)" "5.14 fix" | tee -a "$logFile"
-			fi
+			defaults write "$plistlocation" Score5.14 -bool false; else
+			echo "* 5.14 Ensure system is set to hibernate" >> "$auditResults"
+			echo "$(date -u)" "5.14 Remediate" | tee -a "$logFile"
+		fi
 	else
 		echo "$(date -u)" "5.14 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_14 -bool false
-				fi
+		defaults write "$cisPrioritiesPreferences" Score5.14 -bool false
 	fi
+fi
 
 # 5.15 Require an administrator password to access system-wide preferences
 # Verify organizational score
-Audit5_15="$(defaults read "$plistlocation" OrgScore5_15)"
+Audit5_15="$(defaults read "$cisPrioritiesPreferences" Score5.15)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_15" = "1" ]; then
 	adminSysPrefs="$(security authorizationdb read system.preferences 2> /dev/null | grep -A1 shared | grep -E '(true|false)' | grep -c "true")"
 	# If client fails, then note category in audit file
 	if [ "$adminSysPrefs" = "1" ]; then
-		echo "* 5.15 Require an administrator password to access system-wide preferences" >> "$auditfilelocation"
-		echo "$(date -u)" "5.15 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "5.15 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_15 -bool false
+		echo "* 5.15 Require an administrator password to access system-wide preferences" >> "$auditResults"
+		echo $(date -u) "5.15 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "5.15 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.15 -bool false
 	fi
 fi
 
 # 5.16 Disable ability to login to another user's active and locked session
 # Verify organizational score
-Audit5_16="$(defaults read "$plistlocation" OrgScore5_16)"
+Audit5_16="$(defaults read "$cisPrioritiesPreferences" Score5.16)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_16" = "1" ]; then
 	screensaverRules="$(/usr/bin/security authorizationdb read system.login.screensaver | grep -c 'se-login-window-ui')"
 	# If client fails, then note category in audit file
 	if [ "$screensaverRules" = "1" ]; then
-		echo "$(date -u)" "5.16 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_16 -bool false; else
-		echo "* 5.16 Disable ability to login to another user's active and locked session" >> "$auditfilelocation"
-		echo "$(date -u)" "5.16 fix" | tee -a "$logFile"
+		echo $(date -u) "5.16 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.16 -bool false; else
+		echo "* 5.16 Disable ability to login to another user's active and locked session" >> "$auditResults"
+		echo $(date -u) "5.16 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 5.17 Create a custom message for the Login Screen
 # Configuration Profile - LoginWindow payload > Window > Banner (message)
 # Verify organizational score
-Audit5_17="$(defaults read "$plistlocation" OrgScore5_17)"
+Audit5_17="$(defaults read "$cisPrioritiesPreferences" Score5.17)"
 # If organizational score is 1 or true, check status of client
-if [ "$Audit5_17" = "1" ]; then
-	CP_loginMessage="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'LoginwindowText')"
+if [ "$Audit5.17" = "1" ]; then
+	configurationProfile_loginMessage="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'LoginwindowText')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_loginMessage" -gt "0" ]] ; then
-		echo "$(date -u)" "5.17 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_17 -bool false; else
+	if [[ "$configurationProfile_loginMessage" > "0" ]] ; then
+		echo $(date -u) "5.17 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.17 -bool false; else
 		loginMessage="$(defaults read /Library/Preferences/com.apple.loginwindow.plist LoginwindowText)"
-		if [[ $loginMessage = "" ]] || [[ $loginMessage = *"does not exist"* ]]; then
-			echo "* 5.17 Create a custom message for the Login Screen" >> "$auditfilelocation"
-			echo "$(date -u)" "5.17 fix" | tee -a "$logFile"; else
-			echo "$(date -u)" "5.17 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore5_17 -bool false
+		if [ "$loginMessage" = "" ]; then
+			echo "* 5.17 Create a custom message for the Login Screen" >> "$auditResults"
+			echo $(date -u) "5.17 Remediate" | tee -a "$logFile"; else
+			echo $(date -u) "5.17 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score5.12 -bool false
 		fi
 	fi
 fi
@@ -1403,71 +1393,74 @@ fi
 # 5.18 Create a Login window banner
 # Policy Banner https://support.apple.com/en-us/HT202277
 # Verify organizational score
-Audit5_18="$(defaults read "$plistlocation" OrgScore5_18)"
+Audit5_18="$(defaults read "$cisPrioritiesPreferences" Score5.18)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_18" = "1" ]; then
 	# If client fails, then note category in audit file
 	if [ -e /Library/Security/PolicyBanner.txt ] || [ -e /Library/Security/PolicyBanner.rtf ] || [ -e /Library/Security/PolicyBanner.rtfd ]; then
-		echo "$(date -u)" "5.18 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_18 -bool false; else
-		echo "* 5.18 Create a Login window banner" >> "$auditfilelocation"
-		echo "$(date -u)" "5.18 fix" | tee -a "$logFile"
+		echo $(date -u) "5.18 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.13 -bool false; else
+		echo "* 5.18 Create a Login window banner" >> "$auditResults"
+		echo $(date -u) "5.18 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 5.20 Disable Fast User Switching (Not Scored)
 # Configuration Profile - LoginWindow payload > Options > Enable Fast User Switching (unchecked)
 # Verify organizational score
-Audit5_20="$(defaults read "$plistlocation" OrgScore5_20)"
+Audit5_20="$(defaults read "$cisPrioritiesPreferences" Score5.20)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit5_20" = "1" ]; then
-	CP_FastUserSwitching="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'MultipleSessionEnabled = 0')"
+	configurationProfile_FastUserSwitching="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'MultipleSessionEnabled = 0')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_FastUserSwitching" -gt "0" ]] ; then
-		echo "$(date -u)" "5.20 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_20 -bool false; else
+	if [[ "$configurationProfile_FastUserSwitching" > "0" ]] ; then
+		echo $(date -u) "5.20 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.20 -bool false; else
 		FastUserSwitching="$(defaults read /Library/Preferences/.GlobalPreferences MultipleSessionEnabled)"
 		if [ "$FastUserSwitching" = "0" ]; then
-			echo "$(date -u)" "5.20 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore5_20 -bool false; else
-			echo "* 5.20 Disable Fast User Switching" >> "$auditfilelocation"
-			echo "$(date -u)" "5.20 fix" | tee -a "$logFile"
+			echo $(date -u) "5.20 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score5.15 -bool false; else
+			echo "* 5.20 Disable Fast User Switching" >> "$auditResults"
+			echo $(date -u) "5.20 Remediate" | tee -a "$logFile"
 		fi
 	fi
 fi
 
+# 5.21 Individual keychain items
+# 5.22 Specialized keychains
+
 # 5.23 System Integrity Protection status
 # Verify organizational score
-Audit5_23="$(defaults read "$plistlocation" OrgScore5_23)"
+Audit5_23="$(defaults read "$cisPrioritiesPreferences" Score5.23)"
 # If organizational score is 1 or true, check status of client
-if [ "$Audit5_23" = "1" ]; then
+if [ "$Audit5._23" = "1" ]; then
 	sipEnabled="$(/usr/bin/csrutil status | awk '{print $5}')"
 	# If client fails, then note category in audit file
 	if [ "$sipEnabled" = "enabled." ]; then
-		echo "$(date -u)" "5.23 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore5_23 -bool false; else
-		echo "* 5.23 System Integrity Protection status - not enabled" >> "$auditfilelocation"
-		echo "$(date -u)" "5.23 fix" | tee -a "$logFile"
+		echo $(date -u) "5.23 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score5.23 -bool false; else
+		echo "* 5.23 System Integrity Protection status - not enabled" >> "$auditResults"
+		echo $(date -u) "5.23 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 6.1.1 Display login window as name and password
 # Configuration Profile - LoginWindow payload > Window > LOGIN PROMPT > Name and password text fields (selected)
 # Verify organizational score
-Audit6_1_1="$(defaults read "$plistlocation" OrgScore6_1_1)"
+Audit6_1_1="$(defaults read "$cisPrioritiesPreferences" Score6.1.1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit6_1_1" = "1" ]; then
-	CP_loginwindowFullName="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'SHOWFULLNAME = 1')"
+	configurationProfile_loginwindowFullName="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'SHOWFULLNAME = 1')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_loginwindowFullName" -gt "0" ]] ; then
-		echo "$(date -u)" "6.1.1 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore6_1_1 -bool false; else
+	if [[ "$configurationProfile_loginwindowFullName" > "0" ]] ; then
+		echo $(date -u) "6.1.1 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score6.1.1 -bool false; else
 		loginwindowFullName="$(defaults read /Library/Preferences/com.apple.loginwindow SHOWFULLNAME)"
 		if [ "$loginwindowFullName" != "1" ]; then
-			echo "* 6.1.1 Display login window as name and password" >> "$auditfilelocation"
-			echo "$(date -u)" "6.1.1 fix" | tee -a "$logFile"; else
-			echo "$(date -u)" "6.1.1 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore6_1_1 -bool false
+			echo "* 6.1.1 Display login window as name and password" >> "$auditResults"
+			echo $(date -u) "6.1.1 Remediate" | tee -a "$logFile"; else
+			echo $(date -u) "6.1.1 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score6.1.1 -bool false
 		fi
 	fi
 fi
@@ -1475,20 +1468,20 @@ fi
 # 6.1.2 Disable "Show password hints"
 # Configuration Profile - LoginWindow payload > Options > Show password hint when needed and available (unchecked - Yes this is backwards)
 # Verify organizational score
-Audit6_1_2="$(defaults read "$plistlocation" OrgScore6_1_2)"
+Audit6_1_2="$(defaults read "$cisPrioritiesPreferences" Score6.1.2)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit6_1_2" = "1" ]; then
-	CP_passwordHints="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'RetriesUntilHint = 0')"
+	configurationProfile_passwordHints="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'RetriesUntilHint = 0')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_passwordHints" -gt "0" ]] ; then
-		echo "$(date -u)" "6.1.2 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore6_1_2 -bool false; else
+	if [[ "$configurationProfile_passwordHints" > "0" ]] ; then
+		echo $(date -u) "6.1.2 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score6.1.2 -bool false; else
 		passwordHints="$(defaults read /Library/Preferences/com.apple.loginwindow RetriesUntilHint)"
-		if [ "$passwordHints" -gt 0 ] || [ "$passwordHints" = *exist* ]; then
-			echo "* 6.1.2 Disable Show password hints" >> "$auditfilelocation"
-			echo "$(date -u)" "6.1.2 fix" | tee -a "$logFile"; else
-			echo "$(date -u)" "6.1.2 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore6_1_2 -bool false
+		if [ "$passwordHints" -gt 0 ]; then
+			echo "* 6.1.2 Disable Show password hints" >> "$auditResults"
+			echo $(date -u) "6.1.2 Remediate" | tee -a "$logFile"; else
+			echo $(date -u) "6.1.2 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score6.1.2 -bool false
 		fi
 	fi
 fi
@@ -1496,20 +1489,20 @@ fi
 # 6.1.3 Disable guest account
 # Configuration Profile - LoginWindow payload > Options > Allow Guest User (unchecked)
 # Verify organizational score
-Audit6_1_3="$(defaults read "$plistlocation" OrgScore6_1_3)"
+Audit6_1_3="$(defaults read "$cisPrioritiesPreferences" Score6.1.3)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit6_1_3" = "1" ]; then
-	CP_guestEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'DisableGuestAccount = 1')"
+	configurationProfile_guestEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'DisableGuestAccount = 1')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_guestEnabled" -gt "0" ]] ; then
-		echo "$(date -u)" "6.1.3 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore6_1_3 -bool false; else
+	if [[ "$configurationProfile_guestEnabled" > "0" ]] ; then
+		echo $(date -u) "6.1.3 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score6.1.3 -bool false; else
 		guestEnabled="$(defaults read /Library/Preferences/com.apple.loginwindow.plist GuestEnabled)"
 		if [ "$guestEnabled" = 1 ]; then
-			echo "* 6.1.3 Disable guest account" >> "$auditfilelocation"
-			echo "$(date -u)" "6.1.3 fix" | tee -a "$logFile"; else
-			echo "$(date -u)" "6.1.3 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore6_1_3 -bool false
+			echo "* 6.1.3 Disable guest account" >> "$auditResults"
+			echo $(date -u) "6.1.3 Remediate" | tee -a "$logFile"; else
+			echo $(date -u) "6.1.3 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score6.1.3 -bool false
 		fi
 	fi
 fi
@@ -1517,73 +1510,73 @@ fi
 # 6.1.4 Disable "Allow guests to connect to shared folders"
 # Configuration Profile - 6.1.4 Disable Allow guests to connect to shared folders - Custom payload > com.apple.AppleFileServer guestAccess=false, com.apple.smb.server AllowGuestAccess=false
 # Verify organizational score
-Audit6_1_4="$(defaults read "$plistlocation" OrgScore6_1_4)"
+Audit6_1_4="$(defaults read "$cisPrioritiesPreferences" Score6.1.4)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit6_1_4" = "1" ]; then
-	CP_afpGuestEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'guestAccess = 0')"
-	CP_smbGuestEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'AllowGuestAccess = 0')"
+	configurationProfile_afpGuestEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'guestAccess = 0')"
+	configurationProfile_smbGuestEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'AllowGuestAccess = 0')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_afpGuestEnabled" -gt "0" ]] || [[ "$CP_smbGuestEnabled" -gt "0" ]] ; then
-		echo "$(date -u)" "6.1.4 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore6_1_4 -bool false; else
+	if [[ "$configurationProfile_afpGuestEnabled" > "0" ]] || [[ "$configurationProfile_smbGuestEnabled" > "0" ]] ; then
+		echo $(date -u) "6.1.4 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score6.1.4 -bool false; else
 		afpGuestEnabled="$(defaults read /Library/Preferences/com.apple.AppleFileServer guestAccess)"
 		smbGuestEnabled="$(defaults read /Library/Preferences/SystemConfiguration/com.apple.smb.server AllowGuestAccess)"
 		if [ "$afpGuestEnabled" = "1" ] || [ "$smbGuestEnabled" = "1" ]; then
-			echo "* 6.1.4 Disable Allow guests to connect to shared folders" >> "$auditfilelocation"
-			echo "$(date -u)" "6.1.4 fix" | tee -a "$logFile"; else
-			echo "$(date -u)" "6.1.4 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore6_1_4 -bool false
+			echo "* 6.1.4 Disable Allow guests to connect to shared folders" >> "$auditResults"
+			echo $(date -u) "6.1.4 Remediate" | tee -a "$logFile"; else
+			echo $(date -u) "6.1.4 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score6.1.4 -bool false
 		fi
 	fi
 fi
 
 # 6.1.5 Remove Guest home folder
 # Verify organizational score
-Audit6_1_5="$(defaults read "$plistlocation" OrgScore6_1_5)"
+Audit6_1_5="$(defaults read "$cisPrioritiesPreferences" Score6.1.5)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit6_1_5" = "1" ]; then
 	# If client fails, then note category in audit file
 	if [ -e /Users/Guest ]; then
-		echo "* 6.1.5 Remove Guest home folder" >> "$auditfilelocation"
-		echo "$(date -u)" "6.1.5 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "6.1.5 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore6_1_5 -bool false
+		echo "* 6.1.5 Remove Guest home folder" >> "$auditResults"
+		echo $(date -u) "6.1.5 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "6.1.5 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score6.1.5 -bool false
 	fi
 fi
 
 # 6.2 Turn on filename extensions
 # Does not work as a Configuration Profile - .GlobalPreferences.plist
 # Verify organizational score
-Audit6_2="$(defaults read "$plistlocation" OrgScore6_2)"
+Audit6_2="$(defaults read "$cisPrioritiesPreferences" Score6.2)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit6_2" = "1" ]; then
 		filenameExt="$(defaults read /Users/"$currentUser"/Library/Preferences/.GlobalPreferences.plist AppleShowAllExtensions)"
 	# If client fails, then note category in audit file
 	if [ "$filenameExt" = "1" ]; then
-		echo "$(date -u)" "6.2 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore6_2 -bool false; else
-		echo "* 6.2 Turn on filename extensions" >> "$auditfilelocation"
-		echo "$(date -u)" "6.2 fix" | tee -a "$logFile"
+		echo $(date -u) "6.2 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score6.2 -bool false; else
+		echo "* 6.2 Turn on filename extensions" >> "$auditResults"
+		echo $(date -u) "6.2 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 6.3 Disable the automatic run of safe files in Safari
 # Configuration Profile - Custom payload > com.apple.Safari > AutoOpenSafeDownloads=false
 # Verify organizational score
-Audit6_3="$(defaults read "$plistlocation" OrgScore6_3)"
+Audit6_3="$(defaults read "$cisPrioritiesPreferences" Score6.3)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit6_3" = "1" ]; then
-	CP_safariSafe="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'AutoOpenSafeDownloads = 0')"
+	configurationProfile_safariSafe="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'AutoOpenSafeDownloads = 0')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_safariSafe" -gt "0" ]] ; then
-		echo "$(date -u)" "6.3 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore6_3 -bool false; else
+	if [[ "$configurationProfile_safariSafe" > "0" ]] ; then
+		echo $(date -u) "6.3 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score6.3 -bool false; else
 		safariSafe="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.Safari AutoOpenSafeDownloads)"
 		if [ "$safariSafe" = "1" ]; then
-			echo "* 6.3 Disable the automatic run of safe files in Safari" >> "$auditfilelocation"
-			echo "$(date -u)" "6.3 fix" | tee -a "$logFile"; else
-			echo "$(date -u)" "6.3 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore6_3 -bool false
+			echo "* 6.3 Disable the automatic run of safe files in Safari" >> "$auditResults"
+			echo $(date -u) "6.3 Remediate" | tee -a "$logFile"; else
+			echo $(date -u) "6.3 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score6.3 -bool false
 		fi
 	fi
 fi
