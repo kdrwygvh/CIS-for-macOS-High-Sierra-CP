@@ -56,96 +56,101 @@ fi
 
 # 1.1 Verify all Apple provided software is current
 # Verify organizational score
-Audit1_1="$(defaults read "$plistlocation" OrgScore1_1)"
+Audit1_1="$(defaults read "$cisPrioritiesPreferences" Score1.1)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then remediate
 if [ "$Audit1_1" = "1" ]; then
-	echo "$(date -u)" "1.1 remediated" | tee -a "$logFile"
+	echo $(date -u) "1.1 Remediated" | tee -a "$logFile"
 	# NOTE: INSTALLS ALL RECOMMENDED SOFTWARE UPDATES FROM CLIENT'S CONFIGURED SUS SERVER
-	softwareupdate -i -r
+	# softwareupdate -i -r
+	# The recommended approach is to create an appropriate policy which gently ramps updates, notifies users of their pending installation
+	# and gives the user a small amount of wiggle room to schedule the likely reboot
+	# Jamf example below
+	# /usr/local/bin/jamf policy -event CustomSoftwareUpdateTrigger
 fi
 
 # 1.2 Enable Auto Update
 # Verify organizational score
-Audit1_2="$(defaults read "$plistlocation" OrgScore1_2)"
+Audit1_2="$(defaults read "$cisPrioritiesPreferences" Score1.2)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then remediate
 if [ "$Audit1_2" = "1" ]; then
 	defaults write /Library/Preferences/com.apple.SoftwareUpdate AutomaticCheckEnabled -bool true
-	echo "$(date -u)" "1.2 remediated" | tee -a "$logFile"
+	echo $(date -u) "1.2 Remediated" | tee -a "$logFile"
 fi
 
 # 1.3 Enable app update installs
 # Verify organizational score
-Audit1_3="$(defaults read "$plistlocation" OrgScore1_3)"
+Audit1_3="$(defaults read "$cisPrioritiesPreferences" Score1.3)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then remediate
 if [ "$Audit1_3" = "1" ]; then
 	defaults write /Library/Preferences/com.apple.commerce AutoUpdate -bool true
-	echo "$(date -u)" "1.3 remediated" | tee -a "$logFile"
+	echo $(date -u) "1.3 Remediated" | tee -a "$logFile"
 fi
 
-# 1.4 Enable system data files and security update installs 
+# 1.4 Enable system data files and security update installs
 # Verify organizational score
-Audit1_4="$(defaults read "$plistlocation" OrgScore1_4)"
+Audit1_4="$(defaults read "$cisPrioritiesPreferences" Score1.4)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then remediate
 if [ "$Audit1_4" = "1" ]; then
 	defaults write /Library/Preferences/com.apple.SoftwareUpdate ConfigDataInstall -bool true
 	defaults write /Library/Preferences/com.apple.SoftwareUpdate CriticalUpdateInstall -bool true
-	echo "$(date -u)" "1.4 remediated" | tee -a "$logFile"
+	echo $(date -u) "1.4 Remediated" | tee -a "$logFile"
 fi
 
-# 1.5 Enable OS X update installs 
+# 1.5 Enable macOS update installs
 # Verify organizational score
-Audit1_5="$(defaults read "$plistlocation" OrgScore1_5)"
+Audit1_5="$(defaults read "$cisPrioritiesPreferences" Score1.5)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then remediate
 if [ "$Audit1_5" = "1" ]; then
 	defaults write /Library/Preferences/com.apple.commerce AutoUpdateRestartRequired -bool true
-	echo "$(date -u)" "1.5 remediated" | tee -a "$logFile"
+	defaults write /Library/Preferences/com.apple.SoftwareUpdate AutomaticallyInstallMacOSUpdates -bool true
+	echo $(date -u) "1.5 Remediated" | tee -a "$logFile"
 fi
 
 # 2.1.1 Turn off Bluetooth, if no paired devices exist
 # Verify organizational score
-Audit2_1_1="$(defaults read "$plistlocation" OrgScore2_1_1)"
+Audit2_1_1="$(defaults read "$cisPrioritiesPreferences" Score2.1.1)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then remediate
 if [ "$Audit2_1_1" = "1" ]; then
-	echo "$(date -u)" "Checking 2.1.1" | tee -a "$logFile"
-	connectable="$( system_profiler SPBluetoothDataType | grep Connectable | awk '{print $2}' | head -1 )"
+	echo $(date -u) "Checking 2.1.1" | tee -a "$logFile"
+	connectable="$(system_profiler SPBluetoothDataType | grep Connectable | awk '{print $2}' | head -1)"
 	if [ "$connectable" = "Yes" ]; then
-		echo "$(date -u)" "2.1.1 passed" | tee -a "$logFile"; else
+		echo $(date -u) "2.1.1 passed" | tee -a "$logFile"; else
 		defaults write /Library/Preferences/com.apple.Bluetooth ControllerPowerState -bool false
-		killall -HUP blued
-		echo "$(date -u)" "2.1.1 remediated" | tee -a "$logFile"
+		killall -HUP bluetoothd
+		echo $(date -u) "2.1.1 Remediated" | tee -a "$logFile"
 	fi
 fi
 
 # 2.1.3 Show Bluetooth status in menu bar
 # Verify organizational score
-Audit2_1_3="$(defaults read "$plistlocation" OrgScore2_1_3)"
+Audit2_1_3="$(defaults read "$cisPrioritiesPreferences" Score2.1.3)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then remediate
 if [ "$Audit2_1_3" = "1" ]; then
-	open "/System/Library/CoreServices/Menu Extras/Bluetooth.menu"
-	echo "$(date -u)" "2.1.3 remediated" | tee -a "$logFile"
+	sudo -u "$currentUser" open "/System/Library/CoreServices/Menu Extras/Bluetooth.menu"
+	echo $(date -u) "2.1.3 Remediated" | tee -a "$logFile"
 fi
 
 ## 2.2.1 Enable "Set time and date automatically" (Not Scored)
 # Verify organizational score
-Audit2_2_1="$(defaults read "$plistlocation" OrgScore2_2_1)"
+Audit2_2_1="$(defaults read "$cisPrioritiesPreferences" Score2.2.1)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then remediate
 if [ "$Audit2_2_1" = "1" ]; then
 	systemsetup -setusingnetworktime on
-	echo "$(date -u)" "2.4.1 remediated" | tee -a "$logFile"
+	echo $(date -u) "2.4.1 Remediated" | tee -a "$logFile"
 fi
 
 # 2.2.2 Ensure time set is within appropriate limits
 # Not audited - only enforced if identified as priority
 # Verify organizational score
-Audit2_2_2="$(defaults read "$plistlocation" OrgScore2_2_2)"
+Audit2_2_2="$(defaults read "$cisPrioritiesPreferences" Score2.2.2)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_2_2" = "1" ]; then
 	systemsetup -setusingnetworktime off
