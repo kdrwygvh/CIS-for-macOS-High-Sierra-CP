@@ -508,64 +508,12 @@ if [ "$Audit2_6_1" = "1" ]; then
 	filevaultEnabled="$(fdesetup status | awk '{print $3}')"
 	# If client fails, then note category in audit file
 	if [ "$filevaultEnabled" = "Off." ]; then
-		echo "* 2.6.1.1 Enable FileVault" >> "$auditfilelocation"
-		echo "$(date -u)" "2.6.1.1 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "2.6.1.1 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_6_1_1 -bool false	
+		echo "* 2.6.1 Enable FileVault" >> "$auditResults"
+		echo $(date -u) "2.6.1 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "2.6.1 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.6.1 -bool false
 	fi
 fi
-
-# 2.6.1.2 Ensure all user storage APFS Volumes are encrypted
-# Verify organizational score
-# Audit only.  Does not remediate
-Audit2_6_1_2="$(defaults read "$plistlocation" OrgScore2_6_1_2)"
-# If organizational score is 1 or true, check status of client
-if [ "$Audit2_6_1_2" = "1" ]; then
-	apfsyes="$(diskutil ap list)"
-	if [ "$apfsyes" != "No APFS Containers found" ]; then
-		DUINFO=$(diskutil info /)
-		LV_UUID=$(echo "$DUINFO" | awk '/\/ Partition UUID/ {print $5;exit}')
-					# Get the APFS Container ID for the boot drive's APFS volume.
-					CONTAINER_ID=$(echo "$DUINFO" | awk '/Part of Whole/ {print $4;exit}')
-					APFSINFO=$(diskutil ap list "$CONTAINER_ID")
-					APVOLINFO=$(echo "$APFSINFO" | grep -A7 "$LV_UUID")
-					ENCRYPTION=$(echo "$APVOLINFO" | awk '/FileVault/ {print $3;exit}')
-					if [ "$ENCRYPTION" != "Yes" ]; then
-						echo "* 2.6.1.2 Ensure all user storage APFS Volumes are encrypted" >> "$auditfilelocation"
-						echo "$(date -u)" "2.6.1.2 fix" | tee -a "$logfile"; else 
-						echo "$(date -u)" "2.6.1.2 passed" | tee -a "$logFile"
-						defaults write "$plistlocation" OrgScore2_6_1_2 -bool false	
-						fi
-					else 
-					echo "$(date -u)" "2.6.1.2 not applicable, CoreStorage storage enabled" | tee -a "$logFile"
-					fi
-				fi
-
-	
-
-# 2.6.1.3 Ensure all user storage CoreStorage Volumes are encrypted
-# Verify organizational score
-# Audit only.  Does not remediate
-Audit2_6_1_3="$(defaults read "$plistlocation" OrgScore2_6_1_3)"
-# If organizational score is 1 or true, check status of client
-if [ "$Audit2_6_1_3" = "1" ]; then
-	apfsyes="$(diskutil ap list)"
-	if [ "$apfsyes" == "No APFS Containers found" ]; then
-		# get Logical Volume Family
-		LFV="$(diskutil cs list | grep "Logical Volume Family" | awk '/Logical Volume Family/ {print $5}')"
-		# Check encryption status is complete
-		EncryptStatus="$( diskutil cs "$LFV" | awk '/Conversion Status/ {print $3}')"
-		if [ "$EncryptStatus" != "Complete" ]; then
-		echo "* 2.6.1.3 Ensure all user CoreStorage volumes encrypted" >> "$auditfilelocation"
-		echo "$(date -u)" "2.6.1.3 fix" | tee -a "$logfile"; else 
-		echo "$(date -u)" "2.6.1.3 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_6_1_3 -bool false	
-		fi
-	else 
-	echo "$(date -u)" "2.6.1.3 not applicable, APFS storage enabled" | tee -a "$logFile"
-	fi
-fi
-	
 
 # 2.6.2 Enable Gatekeeper 
 # Configuration Profile - Security and Privacy payload > General > Gatekeeper > Mac App Store and identified developers (selected)
