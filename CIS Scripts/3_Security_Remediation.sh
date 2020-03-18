@@ -155,9 +155,9 @@ Audit2_2_2="$(defaults read "$cisPrioritiesPreferences" Score2.2.2)"
 if [ "$Audit2_2_2" = "1" ]; then
 	systemsetup -setusingnetworktime off
 	systemsetup -setusingnetworktime on
-#	timeServer="$(systemsetup -getnetworktimeserver | awk '{print $4}')"
-#	ntpdate -sv "$timeServer"
-	echo "$(date -u)" "2.2.2 enforced" | tee -a "$logFile"
+	timeServer="$(systemsetup -getnetworktimeserver | awk '{print $4}')"
+	systemsetup -setnetworktimeserver "$timeServer"
+	echo $(date -u) "2.2.2 enforced" | tee -a "$logFile"
 fi
 
 # 2.3.1 Set an inactivity interval of 20 minutes or less for the screen saver 
