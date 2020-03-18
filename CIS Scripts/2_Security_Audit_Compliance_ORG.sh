@@ -318,25 +318,24 @@ if [ "$Audit2.3.4" = "1" ]; then
 	fi
 fi
 
-
-# 2.4.1 Disable Remote Apple Events 
+# 2.4.1 Disable Remote Apple Events
 # Verify organizational score
-Audit2_4_1="$(defaults read "$plistlocation" OrgScore2_4_1)"
+Audit2_4_1="$(defaults read "$cisPrioritiesPreferences" Score2.4.1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_4_1" = "1" ]; then
 	remoteAppleEvents="$(systemsetup -getremoteappleevents | awk '{print $4}')"
 	# If client fails, then note category in audit file
 	if [ "$remoteAppleEvents" = "Off" ]; then
-	 	echo "$(date -u)" "2.4.1 passed" | tee -a "$logFile"
-	 	defaults write "$plistlocation" OrgScore2_4_1 -bool false; else
-		echo "* 2.4.1 Disable Remote Apple Events" >> "$auditfilelocation"
-		echo "$(date -u)" "2.4.1 fix" | tee -a "$logFile"
+	 	echo $(date -u) "2.4.1 Passed" | tee -a "$logFile"
+	 	defaults write "$cisPrioritiesPreferences" Score2.4.1 -bool false; else
+		echo "* 2.4.1 Disable Remote Apple Events" >> "$auditResults"
+		echo $(date -u) "2.4.1 Remediate" | tee -a "$logFile"
 	fi
 fi
 
-# 2.4.2 Disable Internet Sharing 
+# 2.4.2 Disable Internet Sharing
 # Verify organizational score
-Audit2_4_2="$(defaults read "$plistlocation" OrgScore2_4_2)"
+Audit2_4_2="$(defaults read "$cisPrioritiesPreferences" Score2.4.2)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then note category in audit file
 if [ "$Audit2_4_2" = "1" ]; then
@@ -345,138 +344,138 @@ if [ "$Audit2_4_2" = "1" ]; then
 		natEnabled="$(/usr/libexec/PlistBuddy -c "print :NAT:Enabled" /Library/Preferences/SystemConfiguration/com.apple.nat.plist)"
 		natPrimary="$(/usr/libexec/PlistBuddy -c "print :NAT:PrimaryInterface:Enabled" /Library/Preferences/SystemConfiguration/com.apple.nat.plist)"
 		if [ "$natAirport" = "true" ] || [ "$natEnabled" = "true" ] || [ "$natPrimary" = "true" ]; then
-			echo "* 2.4.2 Disable Internet Sharing"  >> "$auditfilelocation"
-			echo "$(date -u)" "2.4.2 fix" | tee -a "$logFile"; else
-			echo "$(date -u)" "2.4.2 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore2_4_2 -bool false
+			echo "* 2.4.2 Disable Internet Sharing"  >> "$auditResults"
+			echo $(date -u) "2.4.2 Remediate" | tee -a "$logFile"; else
+			echo $(date -u) "2.4.2 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score2.4.2 -bool false
 		fi; else
-		echo "$(date -u)" "2.4.2 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_4_2 -bool false
+		echo $(date -u) "2.4.2 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.4.2 -bool false
 	fi
 fi
 
-# 2.4.3 Disable Screen Sharing 
+# 2.4.3 Disable Screen Sharing
 # Verify organizational score
-Audit2_4_3="$(defaults read "$plistlocation" OrgScore2_4_3)"
+Audit2_4_3="$(defaults read "$cisPrioritiesPreferences" Score2.4.3)"
 # If organizational score is 1 or true, check status of client
-if [ "$Audit2_4_3" = "1" ]; then
+if [ "$Audit2.4.3" = "1" ]; then
 	# If client fails, then note category in audit file
 	screenSharing="$(launchctl list | egrep screensharing)"
 	if [ "$screenSharing" = "1" ]; then
-		echo "* 2.4.3 Disable Screen Sharing" >> "$auditfilelocation"
-		echo "$(date -u)" "2.4.3 fix" | tee -a "$logFile"; else
-	 	echo "$(date -u)" "2.4.3 passed" | tee -a "$logFile"
-	 	defaults write "$plistlocation" OrgScore2_4_3 -bool false
+		echo "* 2.4.3 Disable Screen Sharing" >> "$auditResults"
+		echo $(date -u) "2.4.3 Remediate" | tee -a "$logFile"; else
+	 	echo $(date -u) "2.4.3 Passed" | tee -a "$logFile"
+	 	defaults write "$cisPrioritiesPreferences" Score2.4.3 -bool false
 	fi
 fi
 
-# 2.4.4 Disable Printer Sharing 
+# 2.4.4 Disable Printer Sharing
 # Verify organizational score
-Audit2_4_4="$(defaults read "$plistlocation" OrgScore2_4_4)"
+Audit2_4_4="$(defaults read "$cisPrioritiesPreferences" Score2.4.4)"
 # If organizational score is 1 or true, check status of client
-if [ "$Audit2_4_4" = "1" ]; then
+if [ "$Audit2.4.4" = "1" ]; then
 	# If client fails, then note category in audit file
-	printerSharing="$(/usr/sbin/cupsctl | grep -c "share_printers=0")"
+	printerSharing="$(/usr/sbin/cupsctl | grep -c "share.printers=0")"
 	if [ "$printerSharing" != "0" ]; then
-	 	echo "$(date -u)" "2.4.4 passed" | tee -a "$logFile"
-	 	defaults write "$plistlocation" OrgScore2_4_4 -bool false; else
-		echo "* 2.4.4 Disable Printer Sharing" >> "$auditfilelocation"
-		echo "$(date -u)" "2.4.4 fix" | tee -a "$logFile"
+	 	echo $(date -u) "2.4.4 Passed" | tee -a "$logFile"
+	 	defaults write "$cisPrioritiesPreferences" Score2.4.4 -bool false; else
+		echo "* 2.4.4 Disable Printer Sharing" >> "$auditResults"
+		echo $(date -u) "2.4.4 Remediate" | tee -a "$logFile"
 	fi
 fi
 
-# 2.4.5 Disable Remote Login 
+# 2.4.5 Disable Remote Login
 # Verify organizational score
-Audit2_4_5="$(defaults read "$plistlocation" OrgScore2_4_5)"
+Audit2_4_5="$(defaults read "$cisPrioritiesPreferences" Score2.4.5)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_4_5" = "1" ]; then
 	remoteLogin="$(systemsetup -getremotelogin | awk '{print $3}')"
 	# If client fails, then note category in audit file
 	if [ "$remoteLogin" = "Off" ]; then
-	 	echo "$(date -u)" "2.4.5 passed" | tee -a "$logFile"
-	 	defaults write "$plistlocation" OrgScore2_4_5 -bool false; else
-		echo "* 2.4.5 Disable Remote Login" >> "$auditfilelocation"
-		echo "$(date -u)" "2.4.5 fix" | tee -a "$logFile"
+	 	echo $(date -u) "2.4.5 Passed" | tee -a "$logFile"
+	 	defaults write "$cisPrioritiesPreferences" Score2.4.5 -bool false; else
+		echo "* 2.4.5 Disable Remote Login" >> "$auditResults"
+		echo $(date -u) "2.4.5 Remediate" | tee -a "$logFile"
 	fi
 fi
 
-# 2.4.6 Disable DVD or CD Sharing 
+# 2.4.6 Disable DVD or CD Sharing
 # Verify organizational score
-Audit2_4_6="$(defaults read "$plistlocation" OrgScore2_4_6)"
+Audit2_4_6="$(defaults read "$cisPrioritiesPreferences" Score2.4.6)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_4_6" = "1" ]; then
 	discSharing="$(launchctl list | egrep ODSAgent)"
 	# If client fails, then note category in audit file
 	if [ "$discSharing" = "" ]; then
-	 	echo "$(date -u)" "2.4.6 passed" | tee -a "$logFile"
-	 	defaults write "$plistlocation" OrgScore2_4_6 -bool false; else
-		echo "* 2.4.6 Disable DVD or CD Sharing" >> "$auditfilelocation"
-		echo "$(date -u)" "2.4.6 fix" | tee -a "$logFile"
+	 	echo $(date -u) "2.4.6 Passed" | tee -a "$logFile"
+	 	defaults write "$cisPrioritiesPreferences" Score2.4.6 -bool false; else
+		echo "* 2.4.6 Disable DVD or CD Sharing" >> "$auditResults"
+		echo $(date -u) "2.4.6 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 2.4.7 Disable Bluetooth Sharing
 # Verify organizational score
-Audit2_4_7="$(defaults read "$plistlocation" OrgScore2_4_7)"
+Audit2_4_7="$(defaults read "$cisPrioritiesPreferences" Score2.4.7)"
 # If organizational score is 1 or true, check status of client and user
 if [ "$Audit2_4_7" = "1" ]; then
-	btSharing="$(/usr/libexec/PlistBuddy -c "print :PrefKeyServicesEnabled"  /Users/"$currentUser"/Library/Preferences/ByHost/com.apple.Bluetooth."$hardwareUUID".plist)"
+	btSharing="$(/usr/libexec/PlistBuddy -c "print :PrefKeyServicesEnabled"  /Users/"$currentUser"/Library/Preferences/ByHost/com.apple.Bluetooth.$hardwareUUID.plist)"
 	# If client fails, then note category in audit file
 	if [ "$btSharing" = "true" ]; then
-		echo "* 2.4.7 Disable Bluetooth Sharing" >> "$auditfilelocation"
-		echo "$(date -u)" "2.4.7 fix" | tee -a "$logFile"; else
-	 	echo "$(date -u)" "2.4.7 passed" | tee -a "$logFile"
-	 	defaults write "$plistlocation" OrgScore2_4_7 -bool false
+		echo "* 2.4.7 Disable Bluetooth Sharing" >> "$auditResults"
+		echo $(date -u) "2.4.7 Remediate" | tee -a "$logFile"; else
+	 	echo $(date -u) "2.4.7 Passed" | tee -a "$logFile"
+	 	defaults write "$cisPrioritiesPreferences" Score2.4.7 -bool false
 	fi
 fi
 
 # 2.4.8 Disable File Sharing
 # Verify organizational score
-Audit2_4_8="$(defaults read "$plistlocation" OrgScore2_4_8)"
+Audit2_4_8="$(defaults read "$cisPrioritiesPreferences" Score2.4.8)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_4_8" = "1" ]; then
 	afpEnabled="$(launchctl list | egrep AppleFileServer)"
 	smbEnabled="$(launchctl list | egrep smbd)"
 	# If client fails, then note category in audit file
 	if [ "$afpEnabled" = "" ] && [ "$smbEnabled" = "" ]; then
- 		echo "$(date -u)" "2.4.8 passed" | tee -a "$logFile"
- 		defaults write "$plistlocation" OrgScore2_4_8 -bool false; else
-		echo "* 2.4.8 Disable File Sharing" >> "$auditfilelocation"
-		echo "$(date -u)" "2.4.8 fix" | tee -a "$logFile"
+ 		echo $(date -u) "2.4.8 Passed" | tee -a "$logFile"
+ 		defaults write "$cisPrioritiesPreferences" Score2.4.8 -bool false; else
+		echo "* 2.4.8 Disable File Sharing" >> "$auditResults"
+		echo $(date -u) "2.4.8 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 2.4.9 Disable Remote Management
 # Verify organizational score
-Audit2_4_9="$(defaults read "$plistlocation" OrgScore2_4_9)"
+Audit2_4_9="$(defaults read "$cisPrioritiesPreferences" Score2.4.9)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_4_9" = "1" ]; then
 	remoteManagement="$(ps -ef | egrep ARDAgent | grep -c "/System/Library/CoreServices/RemoteManagement/ARDAgent.app/Contents/MacOS/ARDAgent")"
 	# If client fails, then note category in audit file
 	if [ "$remoteManagement" = "1" ]; then
- 		echo "$(date -u)" "2.4.9 passed" | tee -a "$logFile"
- 		defaults write "$plistlocation" OrgScore2_4_9 -bool false; else
-		echo "* 2.4.9 Disable Remote Management" >> "$auditfilelocation"
-		echo "$(date -u)" "2.4.9 fix" | tee -a "$logFile"
+ 		echo $(date -u) "2.4.9 Passed" | tee -a "$logFile"
+ 		defaults write "$cisPrioritiesPreferences" Score2.4.9 -bool false; else
+		echo "* 2.4.9 Disable Remote Management" >> "$auditResults"
+		echo $(date -u) "2.4.9 Remediate" | tee -a "$logFile"
 	fi
 fi
 
 # 2.5.1 Disable "Wake for network access"
 # Verify organizational score
-Audit2_5_1="$(defaults read "$plistlocation" OrgScore2_5_1)"
+Audit2_5_1="$(defaults read "$cisPrioritiesPreferences" Score2.5.1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_5_1" = "1" ]; then
-	CP_wompEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c '"Wake On LAN" = 0')"
+	configurationProfile_wompEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c '"Wake On LAN" = 0')"
 		# If client fails, then note category in audit file
-		if [[ "$CP_wompEnabled" = "3" ]] ; then
-			echo "$(date -u)" "2.5.1 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore2_5_1 -bool false; else
+		if [[ "$configurationProfile_wompEnabled" = "3" ]] ; then
+			echo $(date -u) "2.5.1 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score2.5.1 -bool false; else
 			wompEnabled="$(pmset -g | grep womp | awk '{print $2}')"
 			if [ "$wompEnabled" = "0" ]; then
-				echo "$(date -u)" "2.5.1 passed" | tee -a "$logFile"
-				defaults write "$plistlocation" OrgScore2_5_1 -bool false; else
-				echo "* 2.5.1 Disable Wake for network access" >> "$auditfilelocation"
-				echo "$(date -u)" "2.5.1 fix" | tee -a "$logFile"
+				echo $(date -u) "2.5.1 Passed" | tee -a "$logFile"
+				defaults write "$cisPrioritiesPreferences" Score2.5.1 -bool false; else
+				echo "* 2.5.1 Disable Wake for network access" >> "$auditResults"
+				echo $(date -u) "2.5.1 Remediate" | tee -a "$logFile"
 			fi
 		fi
 fi
