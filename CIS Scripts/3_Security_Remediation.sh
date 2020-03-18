@@ -33,25 +33,25 @@
 # updated to use configuration profiles by Apple Professional Services, January 2018
 # github.com/jamfprofessionalservices
 # updated for 10.13 CIS benchmarks by Erin McDonald, Jamf Jan 2019
-
 # USAGE
 # Reads from plist at /Library/Application Support/SecurityScoring/org_security_score.plist by default.
 # For "true" items, runs query for current computer/user compliance.
 # Non-compliant items are logged to /Library/Application Support/SecurityScoring/org_audit
 
-plistlocation="/Library/Application Support/SecurityScoring/org_security_score.plist"
-currentUser="$(python -c 'from SystemConfiguration import SCDynamicStoreCopyConsoleUser; import sys; username = (SCDynamicStoreCopyConsoleUser(None, None, None) or [None])[0]; username = [username,""][username in [u"loginwindow", None, u""]]; sys.stdout.write(username + "\n");')"
+organizationDomain=$4
+cisPrioritiesPreferences="/Library/Preferences/$4.cisPriorities.plist"
+currentUser=$(/bin/ls -l /dev/console | /usr/bin/awk '{ print $3 }')
 hardwareUUID="$(/usr/sbin/system_profiler SPHardwareDataType | grep "Hardware UUID" | awk -F ": " '{print $2}' | xargs)"
+logFile="/var/log/cisRemediation.log"
 
-logFile="/Library/Application Support/SecurityScoring/remediation.log"
-# Append to existing logFile
-echo "$(date -u)" "Beginning remediation" >> "$logFile"
-# Create new logFile
-# echo "$(date -u)" "Beginning remediation" > "$logFile"	
+if [[ "$4" = "" ]] && [[ "$organizationDomain" = "" ]]; then
+    echo "Must set organization domain before running, bailing"
+    exit 1
+fi
 
-if [[ ! -e $plistlocation ]]; then
+if [[ ! -f $cisPrioritiesPreferences ]]; then
 	echo "No scoring file present"
-	exit 0
+	exit 1
 fi
 
 # 1.1 Verify all Apple provided software is current
