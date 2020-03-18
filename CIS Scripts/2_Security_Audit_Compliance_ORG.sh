@@ -102,22 +102,29 @@ if [ "$Audit1_2" = "1" ]; then
 fi
 
 # 1.3 Enable app update installs
-# Does not work as a Configuration Profile - Custom payload > com.apple.commerce
+# Does not work as a Configuration Profile for 10.14 and prior - Jamf Configuration Profile Payload
 # Verify organizational score
-Audit1_3="$(defaults read "$plistlocation" OrgScore1_3)"
+Audit1_3="$(defaults read "$cisPrioritiesPreferences" Score1.3)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit1_3" = "1" ]; then
-	automaticAppUpdates="$(defaults read /Library/Preferences/com.apple.commerce AutoUpdate)"
-	# If client fails, then note category in audit file
-	if [ "$automaticAppUpdates" = "1" ]; then
-		echo "$(date -u)" "1.3 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore1_3 -bool false; else
-		echo "* 1.3 Enable app update installs" >> "$auditfilelocation"
-		echo "$(date -u)" "1.3 fix" | tee -a "$logFile"
+    if [[ $(sw_vers -productVersion | awk -F '.' '{print $2}') -ge 15 ]]; then
+        configurationProfile_automaticAppUpdates="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'AutomaticallyInstallAppUpdates = 1')"
+        if [[ $configurationProfile_automaticAppUpdates -ge "1" ]]; then
+            echo $(date -u) "1.3 Passed cp" | tee -a "$logFile"
+            defaults write "$cisPrioritiesPreferences" Score1.3 -bool false; else
+            automaticAppUpdates="$(defaults read /Library/Preferences/com.apple.commerce AutoUpdate)"
+	        # If client fails, then note category in audit file
+	        if [ "$automaticAppUpdates" -eq "1" ]; then
+		        echo $(date -u) "1.3 Passed" | tee -a "$logFile"
+		        defaults write "$cisPrioritiesPreferences" Score1.3 -bool false; else
+		        echo "* 1.3 Enable app update installs" >> "$auditResults"
+		        echo $(date -u) "1.3 Remediate" | tee -a "$logFile"
+	        fi
+	    fi
 	fi
 fi
 
-# 1.4 Enable system data files and security update installs 
+# 1.4 Enable system data files and security update installs
 # Configuration Profile - Custom payload > com.apple.SoftwareUpdate.plist > ConfigDataInstall=true, CriticalUpdateInstall=true
 # Verify organizational score
 Audit1_4="$(defaults read "$plistlocation" OrgScore1_4)"
