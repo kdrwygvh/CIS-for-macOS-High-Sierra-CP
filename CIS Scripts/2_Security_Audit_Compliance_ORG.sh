@@ -887,58 +887,58 @@ fi
 
 # 2.8.1 Time Machine Auto-Backup
 # Verify organizational score
-Audit2_8_1="$(defaults read "$plistlocation" OrgScore2_8_1)"
+Audit2_8_1="$(defaults read "$cisPrioritiesPreferences" Score2.8.1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_8_1" = "1" ]; then
 	timeMachineAuto="$( defaults read /Library/Preferences/com.apple.TimeMachine.plist AutoBackup )"
 	# If client fails, then note category in audit file
 	if [ "$timeMachineAuto" != "1" ]; then
-		echo "* 2.8.1 Time Machine Auto-Backup" >> "$auditfilelocation"
-		echo "$(date -u)" "2.8.1 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "2.8.1 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_8_1 -bool false
+		echo "* 2.8.1 Time Machine Auto-Backup" >> "$auditResults"
+		echo $(date -u) "2.8.1 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "2.8.1 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.8.1 -bool false
 	fi
 fi
 
 # 2.9 Pair the remote control infrared receiver if enabled
 # Verify organizational score
-Audit2_9="$(defaults read "$plistlocation" OrgScore2_9)"
+Audit2_9="$(defaults read "$cisPrioritiesPreferences" Score2.9)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_9" = "1" ]; then
 	IRPortDetect="$(system_profiler SPUSBDataType | egrep "IR Receiver" -c)"
 	# If client fails, then note category in audit file
 	if [ "$IRPortDetect" = "0" ]; then
-		echo "$(date -u)" "2.9 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_9 -bool false; else
-		echo "* 2.9 Pair the remote control infrared receiver if enabled" >> "$auditfilelocation"
-		echo "$(date -u)" "2.9 fix" | tee -a "$logFile"
+		echo $(date -u) "2.9 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.9 -bool false; else
+		echo "* 2.9 Pair the remote control infrared receiver if enabled" >> "$auditResults"
+		echo $(date -u) "2.9 Remediate" | tee -a "$logFile"
 	fi
 fi
 
-# 2.10 Enable Secure Keyboard Entry in terminal.app 
+# 2.10 Enable Secure Keyboard Entry in terminal.app
 # Configuration Profile - Custom payload > com.apple.Terminal > SecureKeyboardEntry=true
 # Verify organizational score
-Audit2_10="$(defaults read "$plistlocation" OrgScore2_10)"
+Audit2_10="$(defaults read "$cisPrioritiesPreferences" Score2.10)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_10" = "1" ]; then
-	CP_secureKeyboard="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'SecureKeyboardEntry = 1')"
+	configurationProfile_secureKeyboard="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'SecureKeyboardEntry = 1')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_secureKeyboard" -gt "0" ]] ; then
-		echo "$(date -u)" "2.10 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_10 -bool false; else
+	if [[ "$configurationProfile_secureKeyboard" -gt "0" ]] ; then
+		echo $(date -u) "2.10 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.10 -bool false; else
 		secureKeyboard="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.Terminal SecureKeyboardEntry)"
 		if [ "$secureKeyboard" = "1" ]; then
-			echo "$(date -u)" "2.10 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore2_10 -bool false; else
-			echo "* 2.10 Enable Secure Keyboard Entry in terminal.app" >> "$auditfilelocation"
-			echo "$(date -u)" "2.10 fix" | tee -a "$logFile"
+			echo $(date -u) "2.10 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score2.10 -bool false; else
+			echo "* 2.10 Enable Secure Keyboard Entry in Terminal.app" >> "$auditResults"
+			echo $(date -u) "2.10 Remediate" | tee -a "$logFile"
 		fi
 	fi
 fi
 
-# 2.11 Java 6 is not the default Java runtime 
+# 2.11 Java 6 is not the default Java runtime
 # Verify organizational score
-Audit2_11="$(defaults read "$plistlocation" OrgScore2_11)"
+Audit2_11="$(defaults read "$cisPrioritiesPreferences" Score2.11)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_11" = "1" ]; then
 	# If client fails, then note category in audit file
@@ -946,39 +946,32 @@ if [ "$Audit2_11" = "1" ]; then
 		javaVersion="$( defaults read "/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Enabled.plist" CFBundleVersion )"
 		javaMajorVersion="$(echo "$javaVersion" | awk -F'.' '{print $2}')"
 		if [ "$javaMajorVersion" -lt "7" ]; then
-			echo "* 2.11 Java 6 is not the default Java runtime" >> "$auditfilelocation"
-			echo "$(date -u)" "2.11 fix" | tee -a "$logFile"; else
-			echo "$(date -u)" "2.11 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore2_11 -bool false
+			echo "* 2.11 Java 6 is not the default Java runtime" >> "$auditResults"
+			echo $(date -u) "2.11 Remediate" | tee -a "$logFile"; else
+			echo $(date -u) "2.11 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score2.11 -bool false
 		fi
 	fi
 	if [ ! -f "/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Enabled.plist" ] ; then
-		echo "$(date -u)" "2.11 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_11 -bool false
+		echo $(date -u) "2.11 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.11 -bool false
 	fi
 fi
 
-# 2.13 Ensure EFI version is valid and being regularly checked
-# Audit only.  T2 chip Macs do not allow for use of eficheck
+# 2.13 Ensure EFI version is valid and being regularly checked (Pre T2 Mac hardware Only)
 # Verify organizational score
-Audit2_13="$(defaults read "$plistlocation" OrgScore2_13)"
+Audit2_13="$(defaults read "$cisPrioritiesPreferences" Score2.13)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_13" = "1" ]; then
-# Check for T2 chip.  
-if system_profiler SPiBridgeDataType | grep 'Model Name:' | grep -q 'T2'; then 
-	echo "* 2.13 Check EFI Firmware Integrity is not supported by this Mac. T2 Chip found." >> "$auditfilelocation"
-	defaults write "$plistlocation" OrgScore2_13 -bool false
-	echo "$(date -u)" "2.13 passed" | tee -a "$logFile"
-	else
-		efiStatus="$(/usr/libexec/firmwarecheckers/eficheck/eficheck --integrity-check | grep -c "No changes detected")"
-		if [ "$efiStatus" -gt 0 ]; then
-			echo "$(date -u)" "2.13 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore2_13 -bool false
-			else
-				echo "* 2.13 Ensure EFI version is valid and being regularly checked" >> "$auditfilelocation"
-				echo "$(date -u)" "2.13 fix" | tee -a "$logFile"
-				fi
-fi
+  # Check to see if the Hardware is T2 generation
+  AppleT2Presence="$(system_profiler SPiBridgeDataType | grep "Model Name" | awk -F ': ' '{print $2}')"
+    if [[ "$AppleT2Presence" = "Apple T2 Security Chip" ]]; then
+      echo $(date -u) "2.13 Passed" | tee -a "$logFile"
+    elif [[ "$(/usr/libexec/firmwarecheckers/eficheck/eficheck --integrity-check)" =~ "No changes detected" ]]; then
+      echo $(date -u) "2.13 Passed" | tee -a "$logFile"
+    else
+      echo $(date -u) "2.13 Remediate" | tee -a "$logFile"
+    fi
 fi
 
 
