@@ -70,7 +70,7 @@ echo $(date -u) "Beginning Audit" > "$logFile"
 Audit1_1="$(defaults read "$plistlocation" OrgScore1_1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit1_1" = "1" ]; then
-	countAvailableSUS="$(softwareupdate -l | grep "*" | wc -l | tr -d ' ')"
+	countAvailableSUS="$(defaults read /Library/Preferences/com.apple.SoftwareUpdate LastUpdatesAvailable)"
 	# If client fails, then note category in audit file
 	if [[ "$countAvailableSUS" -eq "0" ]]; then
 		echo $(date -u) "1.1 Passed" | tee -a "$logFile"
