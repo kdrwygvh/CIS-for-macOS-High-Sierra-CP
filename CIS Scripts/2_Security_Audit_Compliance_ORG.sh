@@ -145,19 +145,25 @@ if [ "$Audit1_4" = "1" ]; then
 	fi
 fi
 
-# 1.5 Enable OS X update installs 
+# 1.5 Enable macOS update installs
 # Does not work as a Configuration Profile - Custom payload > com.apple.commerce
+# For 10.14+, add AutomaticallyInstallMacOSUpdates to the custom SoftwareUpdate Payload in 1.4
 # Verify organizational score
-Audit1_5="$(defaults read "$plistlocation" OrgScore1_5)"
+Audit1_5="$(defaults read "$cisPrioritiesPreferences" Score1.5)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit1_5" = "1" ]; then
-	updateRestart="$(defaults read /Library/Preferences/com.apple.commerce AutoUpdateRestartRequired)"
-	# If client fails, then note category in audit file
-	if [ "$updateRestart" = "1" ]; then
-		echo "$(date -u)" "1.5 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore1_5 -bool false; else
-		echo "* 1.5 Enable OS X update installs" >> "$auditfilelocation"
-		echo "$(date -u)" "1.5 fix" | tee -a "$logFile"
+    # High Sierra and Earlier OS Update Check
+    if [ $(sw.vers -productVersion | awk -F '.' '{print $2}') -le 13 ]; then
+        updateRestart="$(defaults read /Library/Preferences/com.apple.commerce AutoUpdateRestartRequired)"
+    else
+        updateRestart="$(defaults read /Library/Preferences/com.apple.SoftwareUpdate AutomaticallyInstallMacOSUpdates)"
+    fi
+    # If client fails, then note category in audit file
+    if [ "$updateRestart" -eq "1" ]; then
+		echo $(date -u) "1.5 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score1.5 -bool false; else
+		echo "* 1.5 Enable OS X update installs" >> "$auditResults"
+		echo $(date -u) "1.5 Remediate" | tee -a "$logFile"
 	fi
 fi
 
