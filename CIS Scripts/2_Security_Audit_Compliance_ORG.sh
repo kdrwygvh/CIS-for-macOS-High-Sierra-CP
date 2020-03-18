@@ -480,12 +480,31 @@ if [ "$Audit2_5_1" = "1" ]; then
 		fi
 fi
 
-# 2.6.1.1 Enable FileVault 
+# 2.5.2 Disable sleeping the computer when connected to power
 # Verify organizational score
-# Audit only.  Does not remediate
-Audit2_6_1_1="$(defaults read "$plistlocation" OrgScore2_6_1_1)"
+Audit2_5_2="$(defaults read "$cisPrioritiesPreferences" Score2.5.2)"
 # If organizational score is 1 or true, check status of client
-if [ "$Audit2_6_1_1" = "1" ]; then
+if [ "$Audit2_5_2" = "1" ]; then
+	configurationProfile_disksleepEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c '"Disk Sleep Timer-boolean" = 0')"
+		# If client fails, then note category in audit file
+		if [[ "$configurationProfile_disksleepEnabled" = "3" ]] ; then
+			echo $(date -u) "2.5.2 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score2.5.2 -bool false; else
+			disksleepEnabled="$(pmset -g | grep disksleep | awk '{print $2}')"
+			if [ "$wompEnabled" = "0" ]; then
+				echo $(date -u) "2.5.2 Passed" | tee -a "$logFile"
+				defaults write "$cisPrioritiesPreferences" Score2.5.2 -bool false; else
+				echo "* 2.5.2 Disable Wake for network access" >> "$auditResults"
+				echo $(date -u) "2.5.2 Remediate" | tee -a "$logFile"
+			fi
+		fi
+fi
+
+# 2.6.1.1 Enable FileVault
+# Verify organizational score
+Audit2_6_1="$(defaults read "$cisPrioritiesPreferences" Score2.6.1)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit2_6_1" = "1" ]; then
 	filevaultEnabled="$(fdesetup status | awk '{print $3}')"
 	# If client fails, then note category in audit file
 	if [ "$filevaultEnabled" = "Off." ]; then
