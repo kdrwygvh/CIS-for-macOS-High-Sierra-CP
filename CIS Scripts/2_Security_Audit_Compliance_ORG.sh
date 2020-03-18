@@ -127,20 +127,20 @@ fi
 # 1.4 Enable system data files and security update installs
 # Configuration Profile - Custom payload > com.apple.SoftwareUpdate.plist > ConfigDataInstall=true, CriticalUpdateInstall=true
 # Verify organizational score
-Audit1_4="$(defaults read "$plistlocation" OrgScore1_4)"
+Audit1_4="$(defaults read "$cisPrioritiesPreferences" Score1.4)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit1_4" = "1" ]; then
 	# Check to see if the preference and key exist. If not, write to audit log. Presuming: Unset = not secure state.
-	CP_criticalUpdates="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'ConfigDataInstall = 1')"
-	if [[ "$CP_criticalUpdates" -gt "0" ]]; then
-		echo "$(date -u)" "1.4 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore1_4 -bool false; else
+	configurationProfile_criticalUpdates="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'ConfigDataInstall = 1')"
+	if [[ "$configurationProfile_criticalUpdates" > "0" ]]; then
+		echo $(date -u) "1.4 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score1.4 -bool false; else
 		criticalUpdates="$(/usr/bin/defaults read /Library/Preferences/com.apple.SoftwareUpdate | /usr/bin/grep -c 'ConfigDataInstall = 1')"
-		if [[ "$criticalUpdates" -gt "0" ]]; then
-			echo "$(date -u)" "1.4 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore1_4 -bool false; else
-			echo "* 1.4 Enable system data files and security update installs" >> "$auditfilelocation"
-			echo "$(date -u)" "1.4 fix" | tee -a "$logFile"
+		if [[ "$criticalUpdates" > "0" ]]; then
+			echo $(date -u) "1.4 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score1.4 -bool false; else
+			echo "* 1.4 Enable system data files and security update installs" >> "$auditResults"
+			echo $(date -u) "1.4 Remediate" | tee -a "$logFile"
 		fi
 	fi
 fi
