@@ -169,20 +169,20 @@ fi
 
 # 2.1.1 Turn off Bluetooth, if no paired devices exist
 # Verify organizational score
-Audit2_1_1="$(defaults read "$plistlocation" OrgScore2_1_1)"
+Audit2_1_1="$(defaults read "$cisPrioritiesPreferences" Score2.1.1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_1_1" = "1" ]; then
 	btPowerState="$(defaults read /Library/Preferences/com.apple.Bluetooth ControllerPowerState)"
 	# If client fails, then note category in audit file
-	if [ "$btPowerState" = "0" ]; then
-		echo "$(date -u)" "2.1.1 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_1_1 -bool false; else
+	if [[ "$btPowerState" -eq "0" ]]; then
+		echo $(date -u) "2.1.1 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.1.1 -bool false; else
 		connectable="$(system_profiler SPBluetoothDataType | grep Connectable | awk '{print $2}' | head -1)"
 		if [ "$connectable" = "Yes" ]; then
-			echo "$(date -u)" "2.1.1 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore2_1_1 -bool false; else
-			echo "* 2.1.1 Turn off Bluetooth, if no paired devices exist" >> "$auditfilelocation"
-			echo "$(date -u)" "2.1.1 fix" | tee -a "$logFile"
+			echo $(date -u) "2.1.1 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score2.1.1 -bool false; else
+			echo "* 2.1.1 Turn off Bluetooth, if no paired devices exist" >> "$auditResults"
+			echo $(date -u) "2.1.1 Remediate" | tee -a "$logFile"
 		fi
 	fi
 fi
