@@ -1581,7 +1581,6 @@ if [ "$Audit6_3" = "1" ]; then
 	fi
 fi
 
-echo "$(date -u)" "Audit complete" | tee -a "$logFile"
 # 6.4 Safari Plug-Ins
 # Verify organizational score
 Audit6_4="$(defaults read "$cisPrioritiesPreferences" Score6.4)"
