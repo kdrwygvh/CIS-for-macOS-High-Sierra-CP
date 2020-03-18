@@ -171,11 +171,14 @@ if [ "$Audit2_2_3" = "1" ]; then
 	echo $(date -u) "2.2.3 Remediated" | tee -a "$logFile"
 fi
 
+# 2.3.1 Set an inactivity interval of 20 minutes or less for the screen saver
+# Verify organizational score
+Audit2_3_1="$(defaults read "$cisPrioritiesPreferences" Score2.3.1)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then remediate
 if [ "$Audit2_3_1" = "1" ]; then
-	defaults write /Users/"$currentUser"/Library/Preferences/ByHost/com.apple.screensaver."$hardwareUUID".plist idleTime -int 1200
-	echo "$(date -u)" "2.3.1 remediated" | tee -a "$logFile"
+	defaults write /Users/"$currentUser"/Library/Preferences/ByHost/com.apple.screensaver.plist idleTime -int 1200
+	echo $(date -u) "2.3.1 Remediated" | tee -a "$logFile"
 fi
 
 # 2.3.2 Secure screen saver corners 
