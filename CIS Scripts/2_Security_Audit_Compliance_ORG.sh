@@ -515,65 +515,65 @@ if [ "$Audit2_6_1" = "1" ]; then
 	fi
 fi
 
-# 2.6.2 Enable Gatekeeper 
+# 2.6.2 Enable Gatekeeper
 # Configuration Profile - Security and Privacy payload > General > Gatekeeper > Mac App Store and identified developers (selected)
 # Verify organizational score
-Audit2_6_2="$(defaults read "$plistlocation" OrgScore2_6_2)"
+Audit2_6_2="$(defaults read "$cisPrioritiesPreferences" Score2.6.2)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_6_2" = "1" ]; then
-	CP_gatekeeperEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'EnableAssessment = 1')"
+	configurationProfile_gatekeeperEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'EnableAssessment = 1')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_gatekeeperEnabled" -gt "0" ]] ; then
-		echo "$(date -u)" "2.6.2 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_6_2 -bool false; else
+	if [[ "$configurationProfile_gatekeeperEnabled" -gt "0" ]] ; then
+		echo $(date -u) "2.6.2 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.6.2 -bool false; else
 		gatekeeperEnabled="$(spctl --status | grep -c "assessments enabled")"
 		if [ "$gatekeeperEnabled" = "1" ]; then
-			echo "$(date -u)" "2.6.2 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore2_6_2 -bool false; else
-			echo "* 2.6.2 Enable Gatekeeper" >> "$auditfilelocation"
-			echo "$(date -u)" "2.6.2 fix" | tee -a "$logFile"
+			echo $(date -u) "2.6.2 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score2.6.2 -bool false; else
+			echo "* 2.6.2 Enable Gatekeeper" >> "$auditResults"
+			echo $(date -u) "2.6.2 Remediate" | tee -a "$logFile"
 		fi
 	fi
 fi
 
-# 2.6.3 Enable Firewall 
+# 2.6.3 Enable Firewall
 # Configuration Profile - Security and Privacy payload > Firewall > Enable Firewall (checked)
 # Verify organizational score
-Audit2_6_3="$(defaults read "$plistlocation" OrgScore2_6_3)"
+Audit2_6_3="$(defaults read "$cisPrioritiesPreferences" Score2.6.3)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_6_3" = "1" ]; then
-	CP_firewallEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'EnableFirewall = 1')"
+	configurationProfile_firewallEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'EnableFirewall = 1')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_firewallEnabled" -gt "0" ]] ; then
-		echo "$(date -u)" "2.6.3 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_6_3 -bool false; else
+	if [[ "$configurationProfile_firewallEnabled" > "0" ]] ; then
+		echo $(date -u) "2.6.3 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.6.3 -bool false; else
 		firewallEnabled="$(defaults read /Library/Preferences/com.apple.alf globalstate)"
 		if [ "$firewallEnabled" = "0" ]; then
-			echo "* 2.6.3 Enable Firewall" >> "$auditfilelocation"
-			echo "$(date -u)" "2.6.3 fix" | tee -a "$logFile"; else
-			echo "$(date -u)" "2.6.3 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore2_6_3 -bool false
+			echo "* 2.6.3 Enable Firewall" >> "$auditResults"
+			echo $(date -u) "2.6.3 Remediate" | tee -a "$logFile"; else
+			echo $(date -u) "2.6.3 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score2.6.3 -bool false
 		fi
 	fi
 fi
 
-# 2.6.4 Enable Firewall Stealth Mode 
+# 2.6.4 Enable Firewall Stealth Mode
 # Configuration Profile - Security and Privacy payload > Firewall > Enable stealth mode (checked)
 # Verify organizational score
-Audit2_6_4="$(defaults read "$plistlocation" OrgScore2_6_4)"
+Audit2_6_4="$(defaults read "$cisPrioritiesPreferences" Score2.6.4)"
 # If organizational score is 1 or true, check status of client
-if [ "$Audit2_6_4" = "1" ]; then
-	CP_stealthEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'EnableStealthMode = 1')"
+if [ "$Audit2.6.4" = "1" ]; then
+	configurationProfile_stealthEnabled="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'EnableStealthMode = 1')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_stealthEnabled" -gt "0" ]] ; then
-		echo "$(date -u)" "2.6.4 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_6_4 -bool false; else
+	if [[ "$configurationProfile_stealthEnabled" > "0" ]] ; then
+		echo $(date -u) "2.6.4 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.6.4 -bool false; else
 		stealthEnabled="$(/usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode | awk '{print $3}')"
 		if [ "$stealthEnabled" = "enabled" ]; then
-			echo "$(date -u)" "2.6.4 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore2_6_4 -bool false; else
-			echo "* 2.6.4 Enable Firewall Stealth Mode" >> "$auditfilelocation"
-			echo "$(date -u)" "2.6.4 fix" | tee -a "$logFile"
+			echo $(date -u) "2.6.4 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score2.6.4 -bool false; else
+			echo "* 2.6.4 Enable Firewall Stealth Mode" >> "$auditResults"
+			echo $(date -u) "2.6.4 Remediate" | tee -a "$logFile"
 		fi
 	fi
 fi
@@ -581,38 +581,34 @@ fi
 # 2.6.5 Review Application Firewall Rules
 # Configuration Profile - Security and Privacy payload > Firewall > Control incoming connections for specific apps (selected)
 # Verify organizational score
-Audit2_6_5="$(defaults read "$plistlocation" OrgScore2_6_5)"
+Audit2_6_5="$(defaults read "$cisPrioritiesPreferences" Score2.6.5)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_6_5" = "1" ]; then
 	appsInbound="$(/usr/libexec/ApplicationFirewall/socketfilterfw --listapps | grep ALF | awk '{print $7}')" # this shows the true state of the config profile too.
 	# If client fails, then note category in audit file
 	if [[ "$appsInbound" -le "10" ]] || [ -z "$appsInbound" ]; then
-		echo "$(date -u)" "2.6.5 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_6_5 -bool false; else
-		echo "* 2.6.5 Review Application Firewall Rules" >> "$auditfilelocation"
-		echo "$(date -u)" "2.6.5 fix" | tee -a "$logFile"
+		echo $(date -u) "2.6.5 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.6.5 -bool false; else
+		echo "* 2.6.5 Review Application Firewall Rules" >> "$auditResults"
+		echo $(date -u) "2.6.5 Remediate" | tee -a "$logFile"
 	fi
 fi
 
-# 2.6.8 Disable sending diagnostic and usage data to Apple
+# 2.6.6 Enable Location Services (Not Scored)
 # Verify organizational score
-Audit2_6_8="$(defaults read "$plistlocation" OrgScore2_6_8)"
+Audit2_6_6="$(defaults read "$cisPrioritiesPreferences" Score2.6.6)"
 # If organizational score is 1 or true, check status of client
-if [ "$Audit2_6_8" = "1" ]; then
-CP_disableDiagnostic="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'allowDiagnosticSubmission = 0')"
-	# If client fails, then note category in audit file
-	if [[ "$CP_disableDiagnostic" -gt "0" ]] ; then
-		echo "$(date -u)" "2.6.4 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_6_4 -bool false; else
-	AppleDiagn=$(defaults read /Library/Application\ Support/CrashReporter/DiagnosticMessagesHistory.plist AutoSubmit)
-	if [ "$AppleDiagn" == 1 ]; then 
-		/bin/echo "* 2.6.8 Disable sending diagnostic and usage data to Apple" >> "$auditfilelocation"
-		echo "$(date -u)" "2.6.8 fix Disable sending diagnostic and usage data to Apple" | tee -a "$logFile"; else
-		echo "$(date -u)" "2.6.8 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_6_8 -bool false
-		fi
-	fi
+if [ "$Audit2_6_6" = "1" ]; then
+    locationServicesStatus="$(/usr/bin/defaults read /var/db/locationd/Library/Preferences/ByHost/com.apple.locationd.plist LocationServicesEnabled)"
+    # if client fails, then note category in audit file
+    if [[ "$locationServicesStatus" = "1" ]]; then
+        echo $(date -u) "2.6.6 Passed" | tee -a "$logFile"
+        defaults write "$cisPrioritiesPreferences" Score2.6.6 -bool false; else
+        echo "* 2.6.6 Review Location Services Configuration" >> "$auditResults"
+        echo $(date -u) "2.6.6 Remediate" | tee -a "$logFile"
+    fi
 fi
+
 
 # 2.7.1 iCloud configuration (Check for iCloud accounts) (Not Scored)
 # Verify organizational score
