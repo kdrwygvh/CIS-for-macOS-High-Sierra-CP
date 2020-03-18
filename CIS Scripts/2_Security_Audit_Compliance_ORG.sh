@@ -270,26 +270,26 @@ if [ "$Audit2_3_1" = "1" ]; then
 	fi
 fi
 
-# 2.3.2 Secure screen saver corners 
+# 2.3.2 Secure screen saver corners
 # Configuration Profile - Custom payload > com.apple.dock > wvous-tl-corner=0, wvous-br-corner=5, wvous-bl-corner=0, wvous-tr-corner=0
 # Verify organizational score
-Audit2_3_2="$(defaults read "$plistlocation" OrgScore2_3_2)"
+Audit2_3_2="$(defaults read "$cisPrioritiesPreferences" Score2.3.2)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_3_2" = "1" ]; then
-	CP_corner="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -E '(\"wvous-bl-corner\" =|\"wvous-tl-corner\" =|\"wvous-tr-corner\" =|\"wvous-br-corner\" =)')"
+	configurationProfile_corner="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -E '(\"wvous-bl-corner\" =|\"wvous-tl-corner\" =|\"wvous-tr-corner\" =|\"wvous-br-corner\" =)')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_corner" != *"6"* ]] && [[ "$CP_corner" != "" ]]; then
-		echo "$(date -u)" "2.3.2 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_3_2 -bool false; else
-		bl_corner="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.dock wvous-bl-corner)"
-		tl_corner="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.dock wvous-tl-corner)"
-		tr_corner="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.dock wvous-tr-corner)"
-		br_corner="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.dock wvous-br-corner)"
-		if [[ "$bl_corner" != "6" ]] && [[ "$tl_corner" != "6" ]] && [[ "$tr_corner" != "6" ]] && [[ "$br_corner" != "6" ]]; then
-			echo "$(date -u)" "2.3.2 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore2_3_2 -bool false; else
-			echo "* 2.3.2 Secure screen saver corners" >> "$auditfilelocation"
-			echo "$(date -u)" "2.3.2 fix" | tee -a "$logFile"
+	if [[ "$configurationProfile_corner" != *"6"* ]] && [[ "$configurationProfile_corner" != "" ]]; then
+		echo $(date -u) "2.3.2 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.3.2 -bool false; else
+		bl.corner="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.dock wvous-bl-corner)"
+		tl.corner="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.dock wvous-tl-corner)"
+		tr.corner="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.dock wvous-tr-corner)"
+		br.corner="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.dock wvous-br-corner)"
+		if [[ "$bl.corner" != "6" ]] && [[ "$tl.corner" != "6" ]] && [[ "$tr.corner" != "6" ]] && [[ "$br.corner" != "6" ]]; then
+			echo $(date -u) "2.3.2 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score2.3.2 -bool false; else
+			echo "* 2.3.2 Secure screen saver corners" >> "$auditResults"
+			echo $(date -u) "2.3.2 Remediate" | tee -a "$logFile"
 		fi
 	fi
 fi
