@@ -1582,5 +1582,21 @@ if [ "$Audit6_3" = "1" ]; then
 fi
 
 echo "$(date -u)" "Audit complete" | tee -a "$logFile"
+# 6.4 Safari Plug-Ins
+# Verify organizational score
+Audit6_4="$(defaults read "$cisPrioritiesPreferences" Score6.4)"
+# If organizational score is 1 or true, check status of client
+if [ "$Audit6_4" = "1" ]; then
+    safariPluginPolicies="$(defaults read /Users/"$currentUser"/Library/Containers/com.apple.Safari/Data/Library/Preferences/com.apple.Safari ManagedPlugInPolicies | sed -e 's/}//g; s/{//g; s/\;//g; s/(//g; s/)//g')"
+    if [[ "$safariPluginPolicies" =~ "PlugInPolicyAllowWithSecurityRestrictions" ]]; then
+        echo "* 6.4 Disable the automatic run of safe files in Safari" >> "$auditResults"
+		echo $(date -u) "6.4 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "6.4 Passed" | tee -a "$logFile"
+	fi
+fi
+
+# 6.5 Parental Controls
+
+echo $(date -u) "Audit complete" | tee -a "$logFile"
 exit 0
 
