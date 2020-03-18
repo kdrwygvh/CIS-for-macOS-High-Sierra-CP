@@ -391,14 +391,27 @@ if [ "$Audit2_6_5" = "1" ]; then
 	echo $(date -u) "2.6.5 Available as Separate Inventory Attribute" | tee -a "$logFile"
 fi
 
+# 2.6.6 Review Location Services State
+# Verify organizational score
+Audit2_6_6="$(defaults read "$cisPrioritiesPreferences" Score2.6.6)"
 # If organizational score is 1 or true, check status of client
 # If client fails, then remediate
-if [ "$Audit2_6_8" = "1" ]; then
-	AppleDiagn=$(defaults read /Library/Application\ Support/CrashReporter/DiagnosticMessagesHistory.plist AutoSubmit)
-		if [ $AppleDiagn == 1 ]; then 
-	defaults write /Library/Application\ Support/CrashReporter/DiagnosticMessagesHistory.plist AutoSubmit -int 0
-	echo "$(date -u)" "2.6.8 remediated" | tee -a "$logFile"
-fi
+if [ "$Audit2_6_6" = "1" ]; then
+    locationServices=$(defaults read /var/db/locationd/Library/Preferences/ByHost/com.apple.locationd.plist LocationServicesEnabled)
+	# If client fails, then note category in audit file
+	if [ "$locationServices" = "1" ]; then
+		echo $(date -u) "2.6.6 passed" | tee -a "$logFile"
+    	defaults write /private/var/db/timed/Library/Preferences/com.apple.timed.plist TMAutomaticTimeOnlyEnabled -bool true
+    	defaults write /private/var/db/timed/Library/Preferences/com.apple.timed.plist TMAutomaticTimeZoneEnabled -bool true
+    	sysadminctl -automaticTime on
+    else
+    	defaults write /var/db/locationd/Library/Preferences/ByHost/com.apple.locationd.plist LocationServicesEnabled -int 1
+        defaults write /Library/Preferences/com.apple.timezone.auto.plist Active -bool true
+        defaults write /private/var/db/timed/Library/Preferences/com.apple.timed.plist TMAutomaticTimeOnlyEnabled -bool true
+        defaults write /private/var/db/timed/Library/Preferences/com.apple.timed.plist TMAutomaticTimeZoneEnabled -bool true
+        sysadminctl -automaticTime on
+	echo $(date -u) "2.6.6 Remediated, Requires Reboot" | tee -a "$logFile"
+	fi
 fi
 
 # 2.7.1 iCloud configuration (Check for iCloud accounts) (Not Scored)
