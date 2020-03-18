@@ -248,23 +248,24 @@ if [ "$Audit2.2.3" = "1" ]; then
 	fi
 fi
 
-# 2.3.1 Set an inactivity interval of 20 minutes or less for the screen saver 
+# 2.3.1 Set an inactivity interval of 20 minutes or less for the screen saver
 # Configuration Profile - LoginWindow payload > Options > Start screen saver after: 20 Minutes of Inactivity
+# Slight preference for setting this via script to allow for in session changes by the end user
 # Verify organizational score
-Audit2_3_1="$(defaults read "$plistlocation" OrgScore2_3_1)"
+Audit2_3_1="$(defaults read "$cisPrioritiesPreferences" Score2.3.1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_3_1" = "1" ]; then
-	CP_screenSaverTime="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep idleTime | awk '{print $3-0}')"
+	configurationProfile_screenSaverTime="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -e idleTime -e maxInactivity | awk '{print $3-0}')"
 	# If client fails, then note category in audit file
-	if [[ "$CP_screenSaverTime" -le "1200" ]] && [[ "$CP_screenSaverTime" != "" ]]; then
-		echo "$(date -u)" "2.3.1 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_3_1 -bool false; else
-		screenSaverTime="$(defaults read /Users/"$currentUser"/Library/Preferences/ByHost/com.apple.screensaver."$hardwareUUID".plist idleTime)"
+	if [[ "$configurationProfile_screenSaverTime" -le "1200" ]] && [[ "$configurationProfile_screenSaverTime" != "" ]]; then
+		echo $(date -u) "2.3.1 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.3.1 -bool false; else
+		screenSaverTime="$(defaults read /Users/"$currentUser"/Library/Preferences/ByHost/com.apple.screensaver.plist idleTime)"
 		if [[ "$screenSaverTime" -le "1200" ]] && [[ "$screenSaverTime" != "" ]]; then
-			echo "$(date -u)" "2.3.1 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore2_3_1 -bool false; else
-			echo "* 2.3.1 Set an inactivity interval of 20 minutes or less for the screen saver" >> "$auditfilelocation"
-			echo "$(date -u)" "2.3.1 fix" | tee -a "$logFile"
+			echo $(date -u) "2.3.1 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score2.3.1 -bool false; else
+			echo "* 2.3.1 Set an inactivity interval of 20 minutes or less for the screen saver" >> "$auditResults"
+			echo $(date -u) "2.3.1 Remediate" | tee -a "$logFile"
 		fi
 	fi
 fi
