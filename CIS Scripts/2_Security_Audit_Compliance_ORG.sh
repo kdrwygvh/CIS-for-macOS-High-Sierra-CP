@@ -189,42 +189,64 @@ fi
 
 # 2.1.3 Show Bluetooth status in menu bar
 # Verify organizational score
-Audit2_1_3="$(defaults read "$plistlocation" OrgScore2_1_3)"
+Audit2_1_3="$(defaults read "$cisPrioritiesPreferences" Score2.1.3)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_1_3" = "1" ]; then
 	btMenuBar="$(defaults read /Users/"$currentUser"/Library/Preferences/com.apple.systemuiserver menuExtras | grep -c Bluetooth.menu)"
 	# If client fails, then note category in audit file
 	if [ "$btMenuBar" = "0" ]; then
-		echo "* 2.1.3 Show Bluetooth status in menu bar" >> "$auditfilelocation"
-		echo "$(date -u)" "2.1.3 fix" | tee -a "$logFile"; else
-		echo "$(date -u)" "2.1.3 passed" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore2_1_3 -bool false
+		echo "* 2.1.3 Show Bluetooth status in menu bar" >> "$auditResults"
+		echo $(date -u) "2.1.3 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "2.1.3 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.1.3 -bool false
 	fi
 fi
 
 ### 2.2.1 Enable "Set time and date automatically" (Not Scored)
 # Verify organizational score
-Audit2_2_1="$(defaults read "$plistlocation" OrgScore2_2_1)"
+Audit2_2_1="$(defaults read "$cisPrioritiesPreferences" Score2.2.1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit2_2_1" = "1" ]; then
 	SetTimeAndDateAutomatically="$(systemsetup -getusingnetworktime | awk '{print $3}')"
 	# If client fails, then note category in audit file
 	if [ "$SetTimeAndDateAutomatically" = "On" ]; then
-	 	echo "$(date -u)" "2.2.1 passed" | tee -a "$logFile"
-	 	defaults write "$plistlocation" OrgScore2_2_1 -bool false; else
-		echo "* 2.2.1 Enable Set time and date automatically" >> "$auditfilelocation"
-		echo "$(date -u)" "2.2.1 fix" | tee -a "$logFile"
+	 	echo $(date -u) "2.2.1 Passed" | tee -a "$logFile"
+	 	defaults write "$cisPrioritiesPreferences" Score2.2.1 -bool false; else
+		echo "* 2.2.1 Enable Set time and date automatically" >> "$auditResults"
+		echo $(date -u) "2.2.1 Remediate" | tee -a "$logFile"
 	fi
 fi
 
-# 2.2.2 Ensure time set is within appropriate limits
-# Not audited - only enforced if identified as priority
+### 2.2.2 Ensure time set is within appropriate limits
+Verify organizational score
+Audit2.2.2="$(defaults read "$cisPrioritiesPreferences" Score2.2.2)"
+If organizational score is 1 or true, check status of client
+if [ "$Audit2.2.2" = "1" ]; then
+    timeServer="$(systemsetup -getnetworktimeserver | awk '{print $4}')"
+    # If client fails, then note category in audit file
+    if [ "$timeServer" = ""]; then
+        echo "* 2.2.2 Ensure time set is within appropriate limits" >> "$auditResults"
+		echo $(date -u) "2.2.2 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "2.2.2 Passed" | tee -a "$logFile"
+	 	defaults write "$cisPrioritiesPreferences" Score2.2.2 -bool false
+	 fi
+fi
+
+# 2.2.3 Restrict NTP server to loopback interface
+# I doubt that this is needed on OSes where timed has replaced ntp
 # Verify organizational score
-Audit2_2_2="$(defaults read "$plistlocation" OrgScore2_2_2)"
-# If organizational score is 1 or true, check status of client
-# if [ "$Audit2_2_2" = "1" ]; then
-# sync time 
-# fi
+Audit2.2.3="$(defaults read "$cisPrioritiesPreferences" Score2.2.3)"
+If organizational score is 1 or true, check status of client
+if [ "$Audit2.2.3" = "1" ]; then
+	restrictNTP="$(cat /etc/ntp-restrict.conf | grep -c "restrict lo")"
+	If client fails, then note category in audit file
+	if [ "$restrictNTP" = "0" ]; then
+		echo "* 2.2.3 Restrict NTP server to loopback interface" >> "$auditResults"
+		echo $(date -u) "2.2.3 Remediate" | tee -a "$logFile"; else
+		echo $(date -u) "2.2.3 Passed" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score2.2.3 -bool false
+	fi
+fi
 
 # 2.3.1 Set an inactivity interval of 20 minutes or less for the screen saver 
 # Configuration Profile - LoginWindow payload > Options > Start screen saver after: 20 Minutes of Inactivity
