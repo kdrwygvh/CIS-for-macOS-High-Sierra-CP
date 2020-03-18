@@ -67,7 +67,7 @@ echo $(date -u) "Beginning Audit" > "$logFile"
 
 # 1.1 Verify all Apple provided software is current
 # Verify organizational score
-Audit1_1="$(defaults read "$plistlocation" OrgScore1_1)"
+Audit1_1="$(defaults read "$cisPrioritiesPreferences" Score1.1)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit1_1" = "1" ]; then
 	countAvailableSUS="$(defaults read /Library/Preferences/com.apple.SoftwareUpdate LastUpdatesAvailable)"
@@ -83,21 +83,21 @@ fi
 # 1.2 Enable Auto Update
 # Configuration Profile - Custom payload > com.apple.SoftwareUpdate.plist > AutomaticCheckEnabled=true, AutomaticDownload=true
 # Verify organizational score
-Audit1_2="$(defaults read "$plistlocation" OrgScore1_2)"
+Audit1_2="$(defaults read "$cisPrioritiesPreferences" Score1.2)"
 # If organizational score is 1 or true, check status of client
 if [ "$Audit1_2" = "1" ]; then
 	# Check to see if the preference and key exist. If not, write to audit log. Presuming: Unset = not secure state.
-	CP_automaticUpdates="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'AutomaticCheckEnabled = 1')"
-	if [[ "$CP_automaticUpdates" -gt "0" ]]; then
-		echo "$(date -u)" "1.2 passed cp" | tee -a "$logFile"
-		defaults write "$plistlocation" OrgScore1_2 -bool false; else
+	configurationProfile_automaticUpdates="$(/usr/sbin/system_profiler SPConfigurationProfileDataType | /usr/bin/grep -c 'AutomaticCheckEnabled = 1')"
+	if [[ "$configurationProfile_automaticUpdates" -ge "1" ]]; then
+		echo $(date -u) "1.2 Passed cp" | tee -a "$logFile"
+		defaults write "$cisPrioritiesPreferences" Score1.2 -bool false; else
 		automaticUpdates="$(/usr/bin/defaults read /Library/Preferences/com.apple.SoftwareUpdate | /usr/bin/grep -c 'AutomaticCheckEnabled = 1')"
-		if [[ "$automaticUpdates" -gt "0" ]]; then
-			echo "$(date -u)" "1.2 passed" | tee -a "$logFile"
-			defaults write "$plistlocation" OrgScore1_2 -bool false; else
-			echo "* 1.2 Enable Auto Update" >> "$auditfilelocation"
-			echo "$(date -u)" "1.2 fix" | tee -a "$logFile"
-		fi	
+		if [[ "$automaticUpdates" -ge "1" ]]; then
+			echo $(date -u) "1.2 Passed" | tee -a "$logFile"
+			defaults write "$cisPrioritiesPreferences" Score1.2 -bool false; else
+			echo "* 1.2 Enable Auto Update" >> "$auditResults"
+			echo $(date -u) "1.2 Remediate" | tee -a "$logFile"
+		fi
 	fi
 fi
 
