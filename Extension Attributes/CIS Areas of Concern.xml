@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?><extensionAttribute>
+<displayName>CIS Areas of Concern</displayName>
+<description>CIS Security Reporting - List Risks</description>
+<dataType>string</dataType>
+<scriptContentsMac>#!/usr/bin/env zsh&#13;
+&#13;
+auditresultsFile=$(find /var/tmp -name *.auditResults -type f)&#13;
+if [[ $auditresultsFile != "" ]]; then&#13;
+	echo "&lt;result&gt;$(echo "Reading from $auditResultsFile"; cat $auditResultsFile)&lt;/result&gt;"&#13;
+else&#13;
+	echo "&lt;result&gt;Audit Results not Available&lt;/result&gt;"&#13;
+fi</scriptContentsMac>
+</extensionAttribute>
